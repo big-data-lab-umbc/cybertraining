@@ -18,9 +18,9 @@ kmeans_omp_compiling_v3a_dpout_TR_b42.csh
 : The fortran program is tested with Intel fortran and gfortran compliers  
 
 ### 2.2 Running_K-means_Ver_Python+F2py
-: This is very similar code to mimic previous Fortran+CSH version. 
-: There are two modules: 1. python class (k_means_class_py3.py), 2. Fortran Module (k-means_mod.f90) 
-: The fortran module should be compiled first, and shell script file contains f2py command and options (f2py_k-means_module_omp.csh) 
+: This is very similar code to mimic previous Fortran+CSH version.  
+: There are two modules: 1. python class (k_means_class_py3.py), 2. Fortran Module (k-means_mod.f90)  
+: The fortran module should be compiled first, and shell script file contains f2py command and options (f2py_k-means_module_omp.csh)  
 : An example code to run K-means clustering is given (run_k-means_py3.py) 
  
 ### 3 Check_output
