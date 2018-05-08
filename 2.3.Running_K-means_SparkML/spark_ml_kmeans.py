@@ -45,6 +45,7 @@ if __name__ == "__main__":
     dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv",
                                header=False, inferSchema=True)
     dataFrame.printSchema()
+    dataFrame.head()
 
     assembler = VectorAssembler(
         inputCols=["_c0", "_c1", "_c2", "_c3", "_c4", "_c5"],
