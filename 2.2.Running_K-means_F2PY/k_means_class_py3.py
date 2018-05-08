@@ -27,7 +27,6 @@ class K_means(object):
     def __init__(self, domain_size=[180,360],nelem=42,nrec=-999,epsilon=1.e-6):
         self.domain_size=domain_size
         self.nelem=nelem
-        self.nelem=nelem
         self.nrec=nrec
         self.epsilon=epsilon
 
