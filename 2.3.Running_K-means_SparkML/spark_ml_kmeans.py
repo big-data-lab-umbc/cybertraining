@@ -1,7 +1,7 @@
-from pyspark.ml.linalg import Vectors
-from pyspark.ml.stat import Correlation
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
+from pyspark.ml.linalg import Vectors
+from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 import numpy as np
 import sys
@@ -43,8 +43,16 @@ if __name__ == "__main__":
     # print(chist[000, :])
 
     dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv",
-                               header=False, inferSchema=True)
+                               header=False, nferSchema=True)
     dataFrame.printSchema()
+
+    assembler = VectorAssembler(
+        inputCols=["_c0", "_c1", "_c2", "_c3", "_c4", "_c5"],
+        outputCol="features")
+
+    output = assembler.transform(dataFrame)
+    print("Assembled columns to vector column 'features'")
+    output.select("features").show(truncate=False)
 
     kmeans = KMeans().setK(10).setSeed(1)
     model = kmeans.fit(dataFrame)
