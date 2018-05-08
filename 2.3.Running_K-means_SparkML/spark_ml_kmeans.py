@@ -1,6 +1,6 @@
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.stat import Correlation
-from pyspark import SparkContext
+from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 import numpy as np
 import sys
@@ -44,7 +44,9 @@ if __name__ == "__main__":
     print(chist.shape)
     print(chist[000, :])
 
-    sc = SparkContext(appName="PythonCorrelations")
+    conf = SparkConf().setAppName("PythonCorrelations")
+    sc = SparkContext(conf=conf)
+
     rdd1 = sc.parallelize(chist)
     rdd2 = rdd1.map(lambda x: [int(i) for i in x])
 
