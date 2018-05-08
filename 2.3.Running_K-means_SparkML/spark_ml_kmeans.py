@@ -58,6 +58,8 @@ if __name__ == "__main__":
     #                 "X29", "X30", "X31", "X32", "X33", "X34", "X35",
     #                 "X36", "X37", "X38", "X39", "X40", "X41", "X42"])
 
+    df = spark.createDataFrame(data, ["features"])
+
     r1 = Correlation.corr(df, "features").head()
     print("Pearson correlation matrix:\n" + str(r1[0]))
 
