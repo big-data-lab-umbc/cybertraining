@@ -1,5 +1,6 @@
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.stat import Correlation
+from pyspark.sql import SparkSession
 
 if __name__ == "__main__":
     spark = SparkSession \
