@@ -48,15 +48,16 @@ if __name__ == "__main__":
     dataFrame.head()
 
     assembler = VectorAssembler(
-        inputCols=["_c0", "_c1", "_c2", "_c3", "_c4", "_c5"],
+        inputCols=["_c0", "_c1", "_c2", "_c3", "_c4", "_c5", "_c6", "_c7",
+                   "_c8", "_c9", "_c10", "_c11", "_c12", "_c13", "_c14"],
         outputCol="features")
 
     output = assembler.transform(dataFrame)
     print("Assembled columns to vector column 'features'")
-    output.select("features").show(truncate=False)
+    output.select("features").show()
 
     kmeans = KMeans().setK(10).setSeed(1)
-    model = kmeans.fit(dataFrame)
+    model = kmeans.fit(output)
 
     centers = model.clusterCenters()
     print("Cluster Centers: ")
