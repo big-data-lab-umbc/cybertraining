@@ -1,6 +1,7 @@
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.stat import Correlation
-# from pyspark import SparkContext, SparkConf
+from pyspark.ml.clustering import KMeans
+from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql import SparkSession
 import numpy as np
 import sys
@@ -42,10 +43,15 @@ if __name__ == "__main__":
     # print(chist[000, :])
 
     dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv",
-                               header=False, nferSchema=True)
-
+                               header=False, inferSchema=True)
     dataFrame.printSchema()
 
+    kmeans = KMeans().setK(10).setSeed(1)
+    model = kmeans.fit(dataFrame)
 
+    centers = model.clusterCenters()
+    print("Cluster Centers: ")
+    for center in centers:
+        print(center)
 
 
