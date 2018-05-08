@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # print(chist[000, :])
 
     dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv",
-                               header=False, nferSchema=True)
+                               header=False, inferSchema=True)
     dataFrame.printSchema()
 
     assembler = VectorAssembler(
