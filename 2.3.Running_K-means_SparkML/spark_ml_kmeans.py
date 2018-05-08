@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #         (Vectors.dense([4.0, 5.0, 0.0, 3.0]),),
     #         (Vectors.dense([6.0, 7.0, 0.0, 8.0]),),
     #         (Vectors.sparse(4, [(0, 9.0), (3, 1.0)]),)]
-    df = spark.createDataFrame(chist)
+    df = spark.createDataFrame(chist.tolist())
 
     # r1 = Correlation.corr(df, "features").head()
     # print("Pearson correlation matrix:\n" + str(r1[0]))
