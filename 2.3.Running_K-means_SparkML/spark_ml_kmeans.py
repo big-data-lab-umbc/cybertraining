@@ -1,7 +1,7 @@
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.stat import Correlation
+from pyspark import SparkContext
 from pyspark.sql import SparkSession
-import pandas as pd
 import numpy as np
 import sys
 import os.path
@@ -10,10 +10,10 @@ import os.path
 
 if __name__ == "__main__":
 
-    spark = SparkSession \
-        .builder \
-        .appName("SparkMLKMeans") \
-        .getOrCreate()
+    # spark = SparkSession \
+    #     .builder \
+    #     .appName("SparkMLKMeans") \
+    #     .getOrCreate()
 
     def bin_file_read2mtx(fname, dtp=np.float32):
         """ Open a binary file, and read data
@@ -44,7 +44,12 @@ if __name__ == "__main__":
     print(chist.shape)
     print(chist[000, :])
 
-    # sparkDf = spark.read.option("header","false").csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv")
+    sc = SparkContext(appName="PythonCorrelations")
+    rdd1 = sc.parallelize(chist)
+    rdd2 = rdd1.map(lambda x: [int(i) for i in x])
+
+
+# sparkDf = spark.read.option("header","false").csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv")
     #
     # sparkDf.first()
 
@@ -61,18 +66,18 @@ if __name__ == "__main__":
     # r2 = Correlation.corr(df, "features", "spearman").head()
     # print("Spearman correlation matrix:\n" + str(r2[0]))
 
-    df = spark.createDataFrame(pd.DataFrame(chist, columns=["X1", "X2", "X3", "X4", "X5", "X6", "X7",
-                                                      "X8", "X9", "X10", "X11", "X12", "X13", "X14",
-                                                      "X15", "X16", "X17", "X18", "X19", "X20", "X21",
-                                                      "X22", "X23", "X24", "X25", "X26", "X27", "X28",
-                                                      "X29", "X30", "X31", "X32", "X33", "X34", "X35",
-                                                      "X36", "X37", "X38", "X39", "X40", "X41", "X42"])).show()
+    # df = spark.createDataFrame(pd.DataFrame(chist, columns=["X1", "X2", "X3", "X4", "X5", "X6", "X7",
+    #                                                   "X8", "X9", "X10", "X11", "X12", "X13", "X14",
+    #                                                   "X15", "X16", "X17", "X18", "X19", "X20", "X21",
+    #                                                   "X22", "X23", "X24", "X25", "X26", "X27", "X28",
+    #                                                   "X29", "X30", "X31", "X32", "X33", "X34", "X35",
+    #                                                   "X36", "X37", "X38", "X39", "X40", "X41", "X42"])).show()
 
-    # df2 = rdd2.toDF(["X1", "X2", "X3", "X4", "X5", "X6", "X7",
-    #                  "X8", "X9", "X10", "X11", "X12", "X13", "X14",
-    #                  "X15", "X16", "X17", "X18", "X19", "X20", "X21",
-    #                  "X22", "X23", "X24", "X25", "X26", "X27", "X28",
-    #                  "X29", "X30", "X31", "X32", "X33", "X34", "X35",
-    #                  "X36", "X37", "X38", "X39", "X40", "X41", "X42"])
+    df = rdd2.toDF(["X1", "X2", "X3", "X4", "X5", "X6", "X7",
+                     "X8", "X9", "X10", "X11", "X12", "X13", "X14",
+                     "X15", "X16", "X17", "X18", "X19", "X20", "X21",
+                     "X22", "X23", "X24", "X25", "X26", "X27", "X28",
+                     "X29", "X30", "X31", "X32", "X33", "X34", "X35",
+                     "X36", "X37", "X38", "X39", "X40", "X41", "X42"])
     df.first()
     # df.printSchema()
