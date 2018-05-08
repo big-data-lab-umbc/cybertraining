@@ -1,5 +1,6 @@
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.stat import Correlation
+from pyspark import SparkContext
 from pyspark.sql import SparkSession
 import numpy as np
 import sys
@@ -8,10 +9,15 @@ import os.path
 # import csv
 
 if __name__ == "__main__":
+
+    sc = SparkContext(appName="PythonCorrelations")
+
     spark = SparkSession \
         .builder \
         .appName("SparkMLKMeans") \
         .getOrCreate()
+
+    import spark.implicits._
 
     def bin_file_read2mtx(fname, dtp=np.float32):
         """ Open a binary file, and read data
@@ -59,7 +65,7 @@ if __name__ == "__main__":
     # r2 = Correlation.corr(df, "features", "spearman").head()
     # print("Spearman correlation matrix:\n" + str(r2[0]))
 
-    rdd1 = spark.parallelize(chist)
+    rdd1 = sc.parallelize(chist)
     rdd2 = rdd1.map(lambda x: [int(i) for i in x])
 
     df2 = rdd2.toDF(["X1", "X2", "X3", "X4", "X5", "X6", "X7",
