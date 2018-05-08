@@ -58,11 +58,11 @@ if __name__ == "__main__":
     #                 "X36", "X37", "X38", "X39", "X40", "X41", "X42"])
     # df.first()
 
-    dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv")
+    dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv", header=False)
 
     # sparkDf = spark.read.option("header","false").csv()
 
-    dataFrame.first()
+    dataFrame.printSchema()
 
     # data = [(Vectors.sparse(4, [(0, 1.0), (3, -2.0)]),),
     #         (Vectors.dense([4.0, 5.0, 0.0, 3.0]),),
