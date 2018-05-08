@@ -1,19 +1,18 @@
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.stat import Correlation
-from pyspark import SparkContext, SparkConf
+# from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 import numpy as np
 import sys
 import os.path
-
 # import csv
 
 if __name__ == "__main__":
 
-    # spark = SparkSession \
-    #     .builder \
-    #     .appName("SparkMLKMeans") \
-    #     .getOrCreate()
+    spark = SparkSession \
+        .builder \
+        .appName("SparkMLKMeans") \
+        .getOrCreate()
 
     def bin_file_read2mtx(fname, dtp=np.float32):
         """ Open a binary file, and read data
@@ -44,24 +43,24 @@ if __name__ == "__main__":
     print(chist.shape)
     print(chist[000, :])
 
-    conf = SparkConf().setAppName("PythonCorrelations")
-    sc = SparkContext(conf=conf)
+    # conf = SparkConf().setAppName("PythonCorrelations")
+    # sc = SparkContext(conf=conf)
 
-    rdd1 = sc.parallelize(chist)
-    rdd2 = rdd1.map(lambda x: [int(i) for i in x])
-
-    spark = SparkSession(sc)
-    df = rdd2.toDF(["X1", "X2", "X3", "X4", "X5", "X6", "X7",
-                    "X8", "X9", "X10", "X11", "X12", "X13", "X14",
-                    "X15", "X16", "X17", "X18", "X19", "X20", "X21",
-                    "X22", "X23", "X24", "X25", "X26", "X27", "X28",
-                    "X29", "X30", "X31", "X32", "X33", "X34", "X35",
-                    "X36", "X37", "X38", "X39", "X40", "X41", "X42"])
-    df.first()
-
-# sparkDf = spark.read.option("header","false").csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv")
+    # rdd1 = sc.parallelize(chist)
+    # rdd2 = rdd1.map(lambda x: [int(i) for i in x])
     #
-    # sparkDf.first()
+    # spark = SparkSession(sc)
+    # df = rdd2.toDF(["X1", "X2", "X3", "X4", "X5", "X6", "X7",
+    #                 "X8", "X9", "X10", "X11", "X12", "X13", "X14",
+    #                 "X15", "X16", "X17", "X18", "X19", "X20", "X21",
+    #                 "X22", "X23", "X24", "X25", "X26", "X27", "X28",
+    #                 "X29", "X30", "X31", "X32", "X33", "X34", "X35",
+    #                 "X36", "X37", "X38", "X39", "X40", "X41", "X42"])
+    # df.first()
+
+    dataFrame = spark.read.csv("example.csv")
+
+    dataFrame.first()
 
     # data = [(Vectors.sparse(4, [(0, 1.0), (3, -2.0)]),),
     #         (Vectors.dense([4.0, 5.0, 0.0, 3.0]),),
