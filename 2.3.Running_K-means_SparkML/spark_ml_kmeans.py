@@ -17,8 +17,6 @@ if __name__ == "__main__":
         .appName("SparkMLKMeans") \
         .getOrCreate()
 
-    import spark.implicits._
-
     def bin_file_read2mtx(fname, dtp=np.float32):
         """ Open a binary file, and read data
             fname : file name
