@@ -3,12 +3,16 @@ from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
+from datetime import datetime
 import numpy as np
 import sys
 import os.path
 # import csv
 
 if __name__ == "__main__":
+
+    startTime = datetime.now()
+    print("starting time: ", startTime)
 
     spark = SparkSession \
         .builder \
@@ -68,4 +72,4 @@ if __name__ == "__main__":
     for center in centers:
         print(center)
 
-
+    print datetime.now() - startTime
