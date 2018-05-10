@@ -66,7 +66,14 @@ if __name__ == "__main__":
 
     kmeans = KMeans().setK(10).setSeed(1)
     model = kmeans.fit(output)
+    # Make predictions
+    predictions = model.transform(output)
+    # Evaluate clustering by computing Silhouette score
+    evaluator = ClusteringEvaluator()
+    silhouette = evaluator.evaluate(predictions)
+    print("Silhouette with squared euclidean distance = " + str(silhouette))
 
+    # Shows the result.
     centers = model.clusterCenters()
     print("Cluster Centers: ")
     for center in centers:
