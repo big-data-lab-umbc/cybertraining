@@ -78,5 +78,14 @@ if __name__ == "__main__":
     print("Cluster Centers: ")
     for center in centers:
         print(center)
+        for i in range(5):
+            for j in range(6):
+                for index in range(41):
+                    k(i,j)=center[index]
+
+    print("our k test is like this")
+    print("===================")
+    print k
+
 
     print datetime.now() - startTime
