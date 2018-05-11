@@ -42,5 +42,7 @@ rfo_map_display_class_py3.py
 run_rfo_map_display.py3.py  
 : Class and running script to draw RFO map from CR_num file  
 
+check_rfo_map_similarity.py3.py  
+: Shows similarity between cluster rfo maps and betwen centroids, in terms of correlation and RMSD, using "rfo_map_display_class"
  
 
