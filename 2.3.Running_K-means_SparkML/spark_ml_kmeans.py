@@ -84,14 +84,12 @@ if __name__ == "__main__":
         # print(center[41])
         # for index in range(42):
         #     print(center[index])
-        for i in range(6):
-            for j in range(7):
-                for index in range(42):
-                    k[i][j] = center[index]
-
-    print("our k test is like this")
-    print("===================")
-    print k
-
+        matrix = []
+        chunks = 6
+        for i in range(len(center)/chunks):
+            matrix.append(center[i*chunks:(i+1)*chunks])
+            print("our matrix to plot ")
+            print("===================")
+            print matrix
 
     print datetime.now() - startTime
