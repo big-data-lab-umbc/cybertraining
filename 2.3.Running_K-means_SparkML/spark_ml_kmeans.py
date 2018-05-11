@@ -82,7 +82,7 @@ if __name__ == "__main__":
         print(np.shape(center))
         print(center[0])
         print(center[41])
-        for index in range(40):
+        for index in range(42):
             print(center[index])
         # for i in range(5):
         #     for j in range(6):
