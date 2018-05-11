@@ -80,6 +80,8 @@ if __name__ == "__main__":
     for center in centers:
         print(center)
         print(np.shape(center))
+        print(center[0])
+        print(center[41])
         # for i in range(5):
         #     for j in range(6):
         #         for index in np.shape(centers):
