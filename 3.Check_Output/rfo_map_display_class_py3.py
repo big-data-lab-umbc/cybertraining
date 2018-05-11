@@ -191,3 +191,19 @@ class rfo_map_display(object):
 
         #if os.path.isfile(outdir+fnout) and not os.path.isfile('./Pics/'+fnout):
         #    call(["ln","-s",outdir+fnout,"./Pics/"])
+
+    def corr_rmsd_mtx_pairs(self,rmap):
+        """
+        calculate correlations among pairs of axis=0
+        """
+
+        n=rmap.shape[0]
+        p=[]
+        corr=[];rmsd=[]
+        for j in range(n-1):
+            for i in range(j+1,n,1):
+                p.append([j+1,i+1])
+                corr.append(np.corrcoef(rmap[i,:],rmap[j,:])[0,1])
+                rmsd.append(np.sqrt(np.power(rmap[i,:]-rmap[j,:],2).mean()))
+
+        return np.asfarray(corr),np.asfarray(rmsd),p
