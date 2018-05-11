@@ -93,5 +93,5 @@ if __name__ == "__main__":
     print matrix
     plt.matshow(matrix)
     plt.colorbar()
-    plo.show()
+    plt.show()
     print datetime.now() - startTime
