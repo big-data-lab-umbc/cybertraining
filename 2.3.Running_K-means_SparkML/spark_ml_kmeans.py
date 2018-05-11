@@ -9,8 +9,8 @@ import sys
 import os.path
 # import csv
 from subprocess import call
-import matplotlib.colors as cls
-import matplotlib.pyplot as plt
+# import matplotlib.colors as cls
+# import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
 
