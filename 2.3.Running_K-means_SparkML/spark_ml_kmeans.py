@@ -74,7 +74,7 @@ if __name__ == "__main__":
     print("Silhouette with squared euclidean distance = " + str(silhouette))
 
     # Shows the result.
-    k = [][]
+    k = []
     centers = model.clusterCenters()
     print("Cluster Centers: ")
     for center in centers:
