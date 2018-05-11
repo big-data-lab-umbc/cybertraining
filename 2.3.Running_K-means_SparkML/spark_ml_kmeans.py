@@ -4,6 +4,7 @@ from pyspark.ml.linalg import Vectors
 from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from datetime import datetime
+import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os.path
@@ -88,8 +89,9 @@ if __name__ == "__main__":
         chunks = 6
         for i in range(len(center)/chunks):
             matrix.append(center[i*chunks:(i+1)*chunks])
-            print("our matrix to plot ")
-            print("===================")
-            print matrix
 
+    print matrix
+    plt.matshow(matrix)
+    plt.colorbar()
+    plo.show()
     print datetime.now() - startTime
