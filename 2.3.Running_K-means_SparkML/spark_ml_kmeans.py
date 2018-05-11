@@ -82,10 +82,13 @@ if __name__ == "__main__":
         print(np.shape(center))
         print(center[0])
         print(center[41])
+        for index in range(40):
+            print(center[index])
         # for i in range(5):
         #     for j in range(6):
-        #         for index in np.shape(centers):
+        #         for index in range(40):
         #             k[i][j] = center[index]
+
 
     print("our k test is like this")
     print("===================")
