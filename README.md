@@ -35,7 +35,7 @@ CR_num_map_class_py3.py
 run_CR_num_map_class.py3.py   
 : Class and running script to get CR_num file.  
 : For every data points in input data, determine the closest centroid (calles as assigning), and return the cluster number  
-: Hence, if input data format=[nday,nlat,nlon,nelem], output format=[nday,nlat,nlon], numpy.int16
+: Hence, if input data format=[nday,nlat,nlon,nelem], output format=[nday,nlat,nlon], numpy.int16  
 : -1: missing, 0: clear sky (no clouds), 1 to k: cluster number.  
 
 rfo_map_display_class_py3.py  
