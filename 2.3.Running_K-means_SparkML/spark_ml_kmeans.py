@@ -86,7 +86,7 @@ if __name__ == "__main__":
         #     print(center[index])
         for i in range(7):
             for j in range(8):
-                for index in range(40):
+                for index in range(42):
                     k[i][j] = center[index]
 
 
