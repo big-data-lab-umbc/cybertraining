@@ -78,16 +78,16 @@ if __name__ == "__main__":
     centers = model.clusterCenters()
     print("Cluster Centers: ")
     for center in centers:
-        print(center)
-        print(np.shape(center))
-        print(center[0])
-        print(center[41])
-        for index in range(42):
-            print(center[index])
-        # for i in range(5):
-        #     for j in range(6):
-        #         for index in range(40):
-        #             k[i][j] = center[index]
+        # print(center)
+        # print(np.shape(center))
+        # print(center[0])
+        # print(center[41])
+        # for index in range(42):
+        #     print(center[index])
+        for i in range(7):
+            for j in range(8):
+                for index in range(40):
+                    k[i][j] = center[index]
 
 
     print("our k test is like this")
