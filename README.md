@@ -26,6 +26,21 @@ kmeans_omp_compiling_v3a_dpout_TR_b42.csh
 ### 3 Check_output
 cent_init_display_42bins_obs.py3.py  
 : This is a python3 program to display centroid (upto k=8).   
+cent_init_display_42bins_obs.k9+.py3.py  
+: This is a python3 program to display centroid (9<k<=12). 
 
-Additional programs like checking geographical distribution of "Relative Frequency of Occurrence (RFO)" are under work. 
+~~Additional programs like checking geographical distribution of "Relative Frequency of Occurrence (RFO)" are under work.~~
+
+CR_num_map_class_py3.py   
+run_CR_num_map_class.py3.py   
+: Class and running script to get CR_num file.  
+: For every data points in input data, determine the closest centroid (calles as assigning), and return the cluster number  
+: Hence, if input data format=[nday,nlat,nlon,nelem], output format=[nday,nlat,nlon], numpy.int16
+: -1: missing, 0: clear sky (no clouds), 1 to k: cluster number.  
+
+rfo_map_display_class_py3.py  
+run_rfo_map_display.py3.py  
+: Class and running script to draw RFO map from CR_num file  
+
+ 
 
