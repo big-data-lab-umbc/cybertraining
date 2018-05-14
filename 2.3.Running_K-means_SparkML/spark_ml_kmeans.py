@@ -112,7 +112,7 @@ if __name__ == "__main__":
         ftype='t': text
 
         """
-        ctd=ctd.T  #[knum,nelem]
+        # ctd=ctd.T  #[knum,nelem]
         # ctd=_sort_centroid(ctd)
         print('Sorted_CF: ',ctd.sum(axis=1))
 
