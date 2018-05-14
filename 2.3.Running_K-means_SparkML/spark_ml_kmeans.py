@@ -5,6 +5,7 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from datetime import datetime
 import numpy as np
+from numpy  import array
 import sys
 import os.path
 # import csv
@@ -96,7 +97,8 @@ if __name__ == "__main__":
     #     plt.colorbar()
     #     plt.show()
 
-    ctd = centers
+    # ctd = centers
+    ctd = array(centers)
 
     def write_centroid(fname,ctd,ftype):
         """
