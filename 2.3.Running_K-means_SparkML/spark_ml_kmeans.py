@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     # ctd = centers
     ctd = array(centers)
-    ctd = ctd.reshape([10,42])
+    # ctd = ctd.reshape([10,42])
     print(ctd)
 
     def write_centroid(fname,ctd,ftype):
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
         """
         ctd=ctd.T  #[knum,nelem]
-        ctd=_sort_centroid(ctd)
+        # ctd=_sort_centroid(ctd)
         print('Sorted_CF: ',ctd.sum(axis=1))
 
         # fname = "SparkOutput"
@@ -124,33 +124,33 @@ if __name__ == "__main__":
 
         return
 
-    def _sort_centroid(ctd):
-        """
-        Sort the centroid
-
-        Thick and high first, thin high second, and thin low last.
-        The lowest CF one (less than 50%) is at the end.
-        Input: centriod, dimension=[knum,nelem]
-        Output: sorted centroid
-        """
-
-        cf=ctd.sum(axis=1)
-        idx= cf<0.5
-        ctd2=ctd[~idx,:].reshape([-1,7,3,2]).sum(axis=3)
-        ctd2[:,0,:]=ctd2[:,0:3,:].sum(axis=1)
-        ctd2[:,1,:]=ctd2[:,3:5,:].sum(axis=1)
-        ctd2[:,2,:]=ctd2[:,5:7,:].sum(axis=1)
-        ctd2=ctd2[:,0:3,:].reshape([-1,9])
-
-        wt=np.arange(1,10,1).reshape([3,3])[::-1,:].reshape(-1)
-        wcf=np.average(ctd2,weights=wt,axis=1)
-        ctd0=ctd[~idx,:][np.argsort(wcf)[::-1],:]
-
-        if idx.sum()>0:
-            xx=np.argsort(cf[idx])[::-1]
-            ctd2=ctd[idx,:].reshape([-1,self.nelem])[xx,:]
-            ctd0=np.concatenate((ctd0,ctd2))
-        return ctd0
+    # def _sort_centroid(ctd):
+    #     """
+    #     Sort the centroid
+    #
+    #     Thick and high first, thin high second, and thin low last.
+    #     The lowest CF one (less than 50%) is at the end.
+    #     Input: centriod, dimension=[knum,nelem]
+    #     Output: sorted centroid
+    #     """
+    #
+    #     cf=ctd.sum(axis=1)
+    #     idx= cf<0.5
+    #     ctd2=ctd[~idx,:].reshape([-1,7,3,2]).sum(axis=3)
+    #     ctd2[:,0,:]=ctd2[:,0:3,:].sum(axis=1)
+    #     ctd2[:,1,:]=ctd2[:,3:5,:].sum(axis=1)
+    #     ctd2[:,2,:]=ctd2[:,5:7,:].sum(axis=1)
+    #     ctd2=ctd2[:,0:3,:].reshape([-1,9])
+    #
+    #     wt=np.arange(1,10,1).reshape([3,3])[::-1,:].reshape(-1)
+    #     wcf=np.average(ctd2,weights=wt,axis=1)
+    #     ctd0=ctd[~idx,:][np.argsort(wcf)[::-1],:]
+    #
+    #     if idx.sum()>0:
+    #         xx=np.argsort(cf[idx])[::-1]
+    #         ctd2=ctd[idx,:].reshape([-1,self.nelem])[xx,:]
+    #         ctd0=np.concatenate((ctd0,ctd2))
+    #     return ctd0
 
     write_centroid("sparkML",ctd,'b')
 
