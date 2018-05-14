@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
     ctd = centers
 
-    def write_centroid(self,fname,ctd,ftype='b'):
+    def write_centroid(fname,ctd,ftype):
         """
         Sorting the centroid and then write to a file
 
@@ -148,6 +148,6 @@ if __name__ == "__main__":
             ctd0=np.concatenate((ctd0,ctd2))
         return ctd0
 
-    ctd.write_centroid("sparkML",ctd,ftype='b')
+    write_centroid("sparkML",ctd,='b')
 
     print datetime.now() - startTime
