@@ -18,6 +18,8 @@ if __name__ == "__main__":
     startTime = datetime.now()
     print("starting time: ", startTime)
 
+    id = int(sys.argv[1])
+
     spark = SparkSession \
         .builder \
         .appName("SparkMLKMeans") \
@@ -68,7 +70,7 @@ if __name__ == "__main__":
     print("Assembled columns to vector column 'features'")
     output.select("features").show()
 
-    kmeans = KMeans().setK(10).setSeed(1)
+    kmeans = KMeans().setK(10).setSeed(id)
     model = kmeans.fit(output)
     # Make predictions
     predictions = model.transform(output)
@@ -117,7 +119,7 @@ if __name__ == "__main__":
         # fname = "SparkOutput"
 
         if ftype=='b':
-            with open(fname+'.float64_dat','wb') as fd:
+            with open(fname+id+'.float64_dat','wb') as fd:
                 ctd.tofile(fd)
         elif ftype=='t':
             np.savetxt(fname+'.txt',ctd,fmt='%.8f',delimiter=' ')
