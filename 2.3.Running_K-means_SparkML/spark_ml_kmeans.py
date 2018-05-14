@@ -100,6 +100,7 @@ if __name__ == "__main__":
     # ctd = centers
     ctd = array(centers)
     ctd = ctd.reshape([10,42])
+    print(ctd)
 
     def write_centroid(fname,ctd,ftype):
         """
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 
         return
 
-    def _sort_centroid(self,ctd):
+    def _sort_centroid(ctd):
         """
         Sort the centroid
 
