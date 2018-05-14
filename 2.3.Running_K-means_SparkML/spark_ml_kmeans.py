@@ -119,7 +119,7 @@ if __name__ == "__main__":
         # fname = "SparkOutput"
 
         if ftype=='b':
-            with open(fname+id+'.float64_dat','wb') as fd:
+            with open(fname+str(id)+'.float64_dat','wb') as fd:
                 ctd.tofile(fd)
         elif ftype=='t':
             np.savetxt(fname+'.txt',ctd,fmt='%.8f',delimiter=' ')
