@@ -93,6 +93,16 @@ def add_colorbar_horizontal(ax1,pic1,tt,tt2=None):
     cb = fig.colorbar(pic1,cax=cb_ax,orientation='horizontal',ticks=tt,extend='both')
     cb.ax.set_xticklabels(tt2,size=12,stretch='condensed')
     return cb
+def add_colorbar_horizontal(ax1,pic1,tt,tt2=None):
+    ### Add colorbar
+    if tt2==None:
+        tt2=tt
+    pos1=ax1.get_position().bounds  ##<= (left,bottom,width,height)
+    cb_ax = fig.add_axes([0.1,pos1[1]-0.07,0.8,0.015])
+    #cb_ax = fig.add_axes([1.0,0.2,0.03,0.6])  ##<= (left,bottom,width,height)
+    cb = fig.colorbar(pic1,cax=cb_ax,orientation='horizontal',ticks=tt,extend='both')
+    cb.ax.set_xticklabels(tt2,size=12,stretch='condensed')
+    return cb
 
 def cent_show_common(ax1,i,cf):
 
@@ -119,10 +129,9 @@ if len(sys.argv) < 3:
 km    = int(sys.argv[1])       # Number of Clusters
 sid  = int(sys.argv[2])      # id
 
-dir1 = './CTD/'
-mdnm = 'Aqua_b42_TR'
-ctdfnm = 'MODIS_{}.cent_km{:02d}_sid{:02d}'.format(mdnm,km,sid)
-fnm=dir1+ctdfnm+'.dpdat'
+dir1 = '/umbc/xfs1/cybertrn/cybertraining2018/team2/research/code/github/sparkML/K-means_Clustering4CloudHistogram/2.3.Running_K-means_SparkML/sparkML.float64_dat'
+# mdnm = 'Aqua_b42_TR'
+ctdfnm = 'sparkML.float64_dat'
 ncl=km; nelem=42
 ###
 ###---- Read Centroid
