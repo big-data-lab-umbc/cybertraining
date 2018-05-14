@@ -96,4 +96,56 @@ if __name__ == "__main__":
     #     plt.colorbar()
     #     plt.show()
 
+    ctd = centers
+
+    def write_centroid(self,fname,ctd,ftype='b'):
+        """
+        Sorting the centroid and then write to a file
+
+        ftype='b': binary
+        ftype='t': text
+
+        """
+        ctd=ctd.T  #[knum,nelem]
+        ctd=self._sort_centroid(ctd)
+        print('Sorted_CF: ',ctd.sum(axis=1))
+
+        # fname = "SparkOutput"
+
+        if ftype=='b':
+            with open(fname+'.float64_dat','wb') as fd:
+                ctd.tofile(fd)
+        elif ftype=='t':
+            np.savetxt(fname+'.txt',ctd,fmt='%.8f',delimiter=' ')
+
+        return
+
+    def _sort_centroid(self,ctd):
+        """
+        Sort the centroid
+
+        Thick and high first, thin high second, and thin low last.
+        The lowest CF one (less than 50%) is at the end.
+        Input: centriod, dimension=[knum,nelem]
+        Output: sorted centroid
+        """
+
+        cf=ctd.sum(axis=1)
+        idx= cf<0.5
+        ctd2=ctd[~idx,:].reshape([-1,7,3,2]).sum(axis=3)
+        ctd2[:,0,:]=ctd2[:,0:3,:].sum(axis=1)
+        ctd2[:,1,:]=ctd2[:,3:5,:].sum(axis=1)
+        ctd2[:,2,:]=ctd2[:,5:7,:].sum(axis=1)
+        ctd2=ctd2[:,0:3,:].reshape([-1,9])
+
+        wt=np.arange(1,10,1).reshape([3,3])[::-1,:].reshape(-1)
+        wcf=np.average(ctd2,weights=wt,axis=1)
+        ctd0=ctd[~idx,:][np.argsort(wcf)[::-1],:]
+
+        if idx.sum()>0:
+            xx=np.argsort(cf[idx])[::-1]
+            ctd2=ctd[idx,:].reshape([-1,self.nelem])[xx,:]
+            ctd0=np.concatenate((ctd0,ctd2))
+        return ctd0
+
     print datetime.now() - startTime
