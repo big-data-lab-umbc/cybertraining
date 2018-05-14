@@ -156,4 +156,4 @@ if __name__ == "__main__":
 
     write_centroid("sparkML",ctd,'b')
 
-    print datetime.now() - startTime
+    print(datetime.now() - startTime)
