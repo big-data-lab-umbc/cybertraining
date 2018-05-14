@@ -99,6 +99,7 @@ if __name__ == "__main__":
 
     # ctd = centers
     ctd = array(centers)
+    ctd = ctd.reshape([10,42])
 
     def write_centroid(fname,ctd,ftype):
         """
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 
         """
         ctd=ctd.T  #[knum,nelem]
-        ctd=self._sort_centroid(ctd)
+        ctd=_sort_centroid(ctd)
         print('Sorted_CF: ',ctd.sum(axis=1))
 
         # fname = "SparkOutput"
