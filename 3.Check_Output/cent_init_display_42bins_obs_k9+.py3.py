@@ -17,6 +17,8 @@ from subprocess import call
 import matplotlib.colors as cls
 import matplotlib.pyplot as plt
 
+fnm="sparkML.float64_dat"
+
 def bin_file_read2mtx(fname,dtp=np.float32):
     """ Open a binary file, and read data
         fname : file name
@@ -175,7 +177,6 @@ for ii,ax in enumerate(axs.flat):
 #plt.tight_layout()
 
 outdir = "./"
-fnm="sparkML.float64_dat"
 fnout = ctdfnm+".png"
 
 ### Show or Save
