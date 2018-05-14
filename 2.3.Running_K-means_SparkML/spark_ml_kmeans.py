@@ -148,6 +148,6 @@ if __name__ == "__main__":
             ctd0=np.concatenate((ctd0,ctd2))
         return ctd0
 
-    km.write_centroid("sparkML",ctd,ftype='b')
+    ctd.write_centroid("sparkML",ctd,ftype='b')
 
     print datetime.now() - startTime
