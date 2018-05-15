@@ -1,17 +1,11 @@
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
-from pyspark.ml.linalg import Vectors
 from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from datetime import datetime
 import numpy as np
 from numpy  import array
 import sys
-import os.path
-# import csv
-from subprocess import call
-# import matplotlib.colors as cls
-# import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
 
@@ -70,6 +64,7 @@ if __name__ == "__main__":
     print("Assembled columns to vector column 'features'")
     output.select("features").show()
 
+
     kmeans = KMeans().setK(10).setSeed(id)
     model = kmeans.fit(output)
     # Make predictions
@@ -99,32 +94,32 @@ if __name__ == "__main__":
     #     plt.colorbar()
     #     plt.show()
 
-    # ctd = centers
-    ctd = array(centers)
+    ctd = centers
+    # ctd = array(centers)
     # ctd = ctd.reshape([10,42])
     print(ctd)
 
-    def write_centroid(fname,ctd,ftype):
-        """
-        Sorting the centroid and then write to a file
-
-        ftype='b': binary
-        ftype='t': text
-
-        """
-        # ctd=ctd.T  #[knum,nelem]
-        # ctd=_sort_centroid(ctd)
-        print('Sorted_CF: ',ctd.sum(axis=1))
-
-        # fname = "SparkOutput"
-
-        if ftype=='b':
-            with open(fname+str(id)+'.float64_dat','wb') as fd:
-                ctd.tofile(fd)
-        elif ftype=='t':
-            np.savetxt(fname+'.txt',ctd,fmt='%.8f',delimiter=' ')
-
-        return
+    # def write_centroid(fname,ctd,ftype):
+    #     """
+    #     Sorting the centroid and then write to a file
+    #
+    #     ftype='b': binary
+    #     ftype='t': text
+    #
+    #     """
+    #     # ctd=ctd.T  #[knum,nelem]
+    #     # ctd=_sort_centroid(ctd)
+    #     print('Sorted_CF: ',ctd.sum(axis=1))
+    #
+    #     # fname = "SparkOutput"
+    #
+    #     if ftype=='b':
+    #         with open(fname+str(id)+'.float64_dat','wb') as fd:
+    #             ctd.tofile(fd)
+    #     elif ftype=='t':
+    #         np.savetxt(fname+'.txt',ctd,fmt='%.8f',delimiter=' ')
+    #
+    #     return
 
     # def _sort_centroid(ctd):
     #     """
@@ -154,6 +149,6 @@ if __name__ == "__main__":
     #         ctd0=np.concatenate((ctd0,ctd2))
     #     return ctd0
 
-    write_centroid("sparkML",ctd,'b')
+    # write_centroid("sparkML",ctd,'b')
 
     print(datetime.now() - startTime)
