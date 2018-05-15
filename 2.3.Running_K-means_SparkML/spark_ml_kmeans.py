@@ -12,7 +12,8 @@ if __name__ == "__main__":
     startTime = datetime.now()
     print("starting time: ", startTime)
 
-    id = int(sys.argv[1])  # seed number of k-means
+    k = int(sys.argv[1])
+    sid = int(sys.argv[2])  # tials
 
     spark = SparkSession \
         .builder \
@@ -66,19 +67,19 @@ if __name__ == "__main__":
 
 
     # kmeans = KMeans().setK(10).setSeed(id)
-    kmeans = KMeans(k=2, initSteps=id)
+    kmeans = KMeans(k=k, initSteps=sid)
     model = kmeans.fit(output)
     # Make predictions
     predictions = model.transform(output)
     # Evaluate clustering by computing Silhouette score
     evaluator = ClusteringEvaluator()
     silhouette = evaluator.evaluate(predictions)
-    print("Silhouette with squared euclidean distance = " + str(silhouette))
+    # print("Silhouette with squared euclidean distance = " + str(silhouette))
 
     # Shows the result.
     # k = []
     centers = model.clusterCenters()
-    print("Cluster Centers: ")
+    print("Silhouette with squared euclidean distance = " + str(silhouette))
     # for center in centers:
     #     # print(center)
     #     # print(np.shape(center))
@@ -96,8 +97,10 @@ if __name__ == "__main__":
     #     plt.show()
 
     ctd = centers
-    # ctd = array(centers)
-    # ctd = ctd.reshape([10,42])
+    print("Cluster Centers: ")
+
+    ctd = array(centers)
+    ctd = ctd.reshape([10,42])
     print(ctd)
 
     # def write_centroid(fname,ctd,ftype):
