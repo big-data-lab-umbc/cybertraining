@@ -12,7 +12,7 @@ if __name__ == "__main__":
     startTime = datetime.now()
     print("starting time: ", startTime)
 
-    id = int(sys.argv[1])
+    id = int(sys.argv[1])  # seed number of k-means
 
     spark = SparkSession \
         .builder \
@@ -65,7 +65,8 @@ if __name__ == "__main__":
     output.select("features").show()
 
 
-    kmeans = KMeans().setK(10).setSeed(id)
+    # kmeans = KMeans().setK(10).setSeed(id)
+    kmeans = KMeans(k=2, initSteps=id)
     model = kmeans.fit(output)
     # Make predictions
     predictions = model.transform(output)
