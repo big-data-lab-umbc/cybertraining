@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
 
     # kmeans = KMeans().setK(10).setSeed(id)
-    kmeans = KMeans(k=k, initSteps=sid)
+    kmeans = KMeans(k=k, runs=sid)
     model = kmeans.fit(output)
     # Make predictions
     predictions = model.transform(output)
