@@ -112,6 +112,7 @@ def assign_and_get_newsum(indata,ctd,nk):
 
     # !!!--- Sum for New Centroid
     # This should be done separately
+    # for jj in range(0,nrec,nk):
     for jj in range(0,nrec,nk):
         # do jj=1,nrec,nk
         for ii in range(nelem):
@@ -144,3 +145,22 @@ def get_wcv_sum(indata,ctd,cl):
             outsum_mview[cli,mm] += tmp*tmp
     return outsum
 
+@cython.cdivision(True)
+def get_record_spans(long nrec, int rank, int tprocs):
+    cdef:
+        long l_nrec, rem, startRec, stopRec
+
+    # Calculate the total number of records for each process
+    l_nrec = nrec // tprocs
+    rem = nrec %  tprocs
+    if (rem == 0):
+        startRec = l_nrec*rank 
+    else:
+        if (rank < rem):
+            # Pick up an extra record
+            l_nrec = l_nrec + 1
+            startRec = rank*l_nrec
+        else:
+            # Accounts for additional records
+            startRec = l_nrec*rank + rem
+    return startRec, stopRec
