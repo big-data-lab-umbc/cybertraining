@@ -11,8 +11,8 @@ setup(
         [
             Extension("k_means_cython",
                 ["k_means_cython.pyx"],
-                extra_compile_args = ["-O3", "-ipo", "-fopenmp"],
-                extra_link_args=['-fopenmp']
+                extra_compile_args = ["-O3", "-ipo", "-finline-functions", "-fma", "-fopenmp", "-mkl"],
+                extra_link_args=['-fopenmp','-mkl']
         )
     ]
 )

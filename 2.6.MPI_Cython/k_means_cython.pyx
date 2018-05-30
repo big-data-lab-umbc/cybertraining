@@ -1,7 +1,8 @@
 from numpy import zeros,empty,copy
 cimport cython
 # from cython.view cimport cvarray
-from libc.stdlib cimport malloc, free, pow
+from libc.stdlib cimport malloc, free
+from libc.math cimport pow, sqrt
 import sys
 print("Using Cythonized K-means")
 
@@ -13,20 +14,34 @@ cdef extern from 'cblas.h':
     double dnrm2 'cblas_dnrm2'(const int n, const double *x, const int incx) nogil
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cdef double calc_dist_simp(double *arr1, double *arr2, long l) nogil:
+    cdef double d
+    cdef long i
+    for i in range(l):
+        d += (arr1[i] - arr2[i])*(arr1[i] - arr2[i])
+    d = sqrt(d)
+    return d
 
 
-
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
 def calc_dist(arr1, arr2):
     # Get two memory views
     cdef double [:] arr_1 = arr1
     cdef double [:] arr_2 = arr2
     cdef long elem = len(arr1)
-    cdef double res = calc_dist_blas(arr_1, arr_2,elem)
+    # cdef double res = calc_dist_blas(arr_1, arr_2,elem)
+    cdef double res = calc_dist_simp(&arr_1[0], &arr_2[0], elem)
     # print(res)
     return res
 
 # This should be a BLAS operation
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cdef double calc_dist_blas(double [:] arr1, double [:] arr2, long elem) nogil:
     # Buffer space
     cdef double *d = <double *>malloc(elem * sizeof(double))
@@ -40,10 +55,9 @@ cdef double calc_dist_blas(double [:] arr1, double [:] arr2, long elem) nogil:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.nonecheck(False)
 def assign_and_get_newsum(indata,ctd,nk):
     cdef int ii,kk,jj
-    # cdef int kk
-    # cdef int jj
     cdef int nelem = indata.shape[0]
     cdef int nrec = indata.shape[1]
     cdef int ncl = ctd.shape[1]
@@ -61,6 +75,8 @@ def assign_and_get_newsum(indata,ctd,nk):
     cdef double [:,:] outsum_mview = outsum
     cdef double [:,:] indata_mview = indata
     cdef double [:,:] ctd_mview = ctd
+
+
 
     for ii in range(0,nrec,nk):
         mindd=1e5
