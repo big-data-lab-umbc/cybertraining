@@ -122,7 +122,7 @@ def assign_and_get_newsum(indata,ctd,nk):
             outsum_mview[clj,ii] += indata_mview[jj,ii]
     return cl,outsum
 
-@cython.boundscheck(False)
+# @cython.boundscheck(False)
 @cython.wraparound(False)
 def get_wcv_sum(indata,ctd,cl):
     cdef int nelem = indata.shape[1]
@@ -130,7 +130,7 @@ def get_wcv_sum(indata,ctd,cl):
     cdef int ncl = ctd.shape[0]
     cdef int ii,mm
     cdef long cli
-    outsum=empty(shape=(ncl,nelem),order='C')
+    outsum=zeros(shape=(ncl,nelem),order='C')
     cdef long [:] cl_mview = cl
     cdef double [:,::1] ctd_mview = ctd
     cdef double [:,::1] outsum_mview = outsum

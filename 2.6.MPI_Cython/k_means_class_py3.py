@@ -193,19 +193,15 @@ class K_means(object):
         else:
             startTime = clock()
             wcvsum=km_mod.get_wcv_sum(indata,ctd,cl)
-            print("wcvsum.shape = {}".format(wcvsum.shape))
             endTime = clock()
             thisTime = endTime - startTime
             # wcv=wcvsum.sum(axis=0)/np.asfarray(cl_count)
             wcv=wcvsum.sum(axis=1)/np.asfarray(cl_count)
-            print("wcv.shape = {}".format(wcv.shape))
             # cf=ctd.sum(axis=0)
-            print("ctd.shape = {}".format(ctd.shape))
             cf=ctd.sum(axis=1)
-            print("cf.shape = {}".format(cf.shape))
             print("** Knum= {}, ID= {}, Total WCV= {}, LowestCF WCV={}, WCV Time= {}".format(
                 # self.knum,self.id_,wcv.sum(),wcv[np.argsort(cf)[0]],datetime.timedelta(seconds=thisTime)))
-                self.knum,self.id_,wcv.sum(),wcv[np.argsort(cf)[1]],datetime.timedelta(seconds=thisTime)))
+                self.knum,self.id_,wcv.sum(),wcv[np.argsort(cf)[0]],datetime.timedelta(seconds=thisTime)))
 
         return ctd
 
