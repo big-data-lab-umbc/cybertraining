@@ -6,14 +6,6 @@ from libc.math cimport pow, sqrt
 import sys
 print("Using Cythonized K-means")
 
-# BLAS!
-cdef extern from 'cblas.h':
-    double ddot 'cblas_ddot'(int n, double* x, int incx, double* y, int incy) nogil
-    void daxpby 'cblas_daxpby'(const int n, const double a, const double *x, const int incx, const double b, double *y, const int incy) nogil
-    void dcopy 'cblas_dcopy'(const int n, const double *x, const int incx, double *y, const int incy) nogil
-    double dnrm2 'cblas_dnrm2'(const int n, const double *x, const int incx) nogil
-
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef double calc_dist_simp(double [:] arr1, double  [:] arr2, long l) nogil:
@@ -46,23 +38,7 @@ def calc_dist(arr1, arr2):
     cdef double [:] arr_1 = arr1
     cdef double [:] arr_2 = arr2
     cdef long elem = len(arr1)
-    # cdef double res = calc_dist_blas(arr_1, arr_2,elem)
     cdef double res = calc_dist_simp(arr_1, arr_2, elem)
-    # print(res)
-    return res
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef double calc_dist_blas(double [:] arr1, double [:] arr2, long elem) nogil:
-    # Buffer space
-    cdef double *d = <double *>malloc(elem * sizeof(double))
-    dcopy(elem, &arr2[0], 1, d, 1)
-    daxpby(elem, 1.0, &arr1[0], 1 , -1.0, d, 1)
-
-    cdef double res = dnrm2(elem,d,1)
-    free(d)
-    # return linalg.norm(arr1-arr2)
     return res
 
 @cython.boundscheck(False)
