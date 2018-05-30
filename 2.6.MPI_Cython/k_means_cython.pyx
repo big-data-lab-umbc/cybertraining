@@ -27,12 +27,13 @@ cdef double calc_dist_simp(double [:] arr1, double  [:] arr2, long l) nogil:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double calc_dist_noslice(double [::1,:] arr1, long ii, double [::1,:] arr2, long kk, long l) nogil:
+cdef double calc_dist_noslice(double [:,::1] arr1, long ii, double [:,::1] arr2, long kk, long l) nogil:
     cdef double d = 0.0
     cdef double tmp
     cdef long i
     for i in range(l):
-        tmp = arr1[i,ii]-arr2[i,kk]
+        # tmp = arr1[i,ii]-arr2[i,kk]
+        tmp = arr1[ii,i]-arr2[kk,i]
         d += tmp*tmp
 
     d = sqrt(d)
@@ -68,9 +69,9 @@ cdef double calc_dist_blas(double [:] arr1, double [:] arr2, long elem) nogil:
 @cython.wraparound(False)
 def assign_and_get_newsum(indata,ctd,nk):
     cdef int ii,kk,jj
-    cdef int nelem = indata.shape[0]
-    cdef int nrec = indata.shape[1]
-    cdef int ncl = ctd.shape[1]
+    cdef int nelem = indata.shape[1]
+    cdef int nrec = indata.shape[0]
+    cdef int ncl = ctd.shape[0]
     # Predefined variables for efficiency
     cdef int idx = ncl
     cdef double mindd = 1e5
@@ -78,13 +79,15 @@ def assign_and_get_newsum(indata,ctd,nk):
 
     cl = empty(nrec,dtype=int)
     cl.fill(ncl)
-    outsum=zeros(shape=(nelem,ncl),order='F')
+    outsum=zeros(shape=(ncl,nelem),order='C')
     
     cdef long clj = 0
     cdef long [::1] cl_mview = cl
-    cdef double [::1,:] outsum_mview = outsum
-    cdef double [::1,:] indata_mview = indata
-    cdef double [::1,:] ctd_mview = ctd
+    cdef double [:,::1] outsum_mview = outsum
+    cdef double [:,::1] indata_mview = indata
+    cdef double [:,::1] ctd_mview = ctd
+    # print("cl.shape = {}, ctd.shape = {}, indata.shape = {}, outsum.shape = {}".format(
+                # cl.shape, ctd.shape, indata.shape, outsum.shape))
 
 
 
@@ -102,37 +105,42 @@ def assign_and_get_newsum(indata,ctd,nk):
                 mindd=tmpdd
                 idx=kk
         if (idx == ncl):
-            print("Not assigned",idx,ii,indata[:,ii])
+            # print("Not assigned",idx,ii,indata[:,ii])
+            print("Not assigned",idx,ii,indata[ii,:])
             sys.exit()
         cl_mview[ii]=idx
 
     # !!!--- Sum for New Centroid
     # This should be done separately
-    for ii in range(nelem):
+    for jj in range(0,nrec,nk):
         # do jj=1,nrec,nk
-        for jj in range(0,nrec,nk):
+        for ii in range(nelem):
             # outsum(ii,cl(jj))=outsum(ii,cl(jj))+indata(ii,jj)
             clj = cl_mview[jj] 
             # outsum_mview[ii,clj] +=outsum_mview[ii,clj] + indata_mview[ii,jj]
-            outsum_mview[ii,clj] += indata_mview[ii,jj]
+            # outsum_mview[ii,clj] += indata_mview[ii,jj]
+            outsum_mview[clj,ii] += indata_mview[jj,ii]
     return cl,outsum
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def get_wcv_sum(indata,ctd,cl):
-    cdef int nelem = indata.shape[0]
-    cdef int nrec = indata.shape[1]
-    cdef int ncl = ctd.shape[1]
+    cdef int nelem = indata.shape[1]
+    cdef int nrec = indata.shape[0]
+    cdef int ncl = ctd.shape[0]
     cdef int ii,mm
     cdef long cli
-    outsum=empty(shape=(nelem,ncl))
+    outsum=empty(shape=(ncl,nelem),order='C')
     cdef long [:] cl_mview = cl
-    cdef double [:,:] ctd_mview = ctd
-    cdef double [:,:] outsum_mview = outsum
-    cdef double [:,:] indata_mview = indata
-    for mm in range(nelem):
-        for ii in range(nrec):
+    cdef double [:,::1] ctd_mview = ctd
+    cdef double [:,::1] outsum_mview = outsum
+    cdef double [:,::1] indata_mview = indata
+    cdef double tmp
+    for ii in range(nrec):
+        for mm in range(nelem):
             cli = cl_mview[ii]
-            outsum_mview[mm,cli]=pow(outsum_mview[mm,cli]+(indata_mview[mm,ii]-ctd_mview[mm,cli]), 2)
+            # outsum_mview[mm,cli]=pow(outsum_mview[mm,cli]+(indata_mview[mm,ii]-ctd_mview[mm,cli]), 2)
+            tmp = (indata_mview[ii,mm] - ctd_mview[cli,mm])
+            outsum_mview[cli,mm] += tmp*tmp
     return outsum
 
