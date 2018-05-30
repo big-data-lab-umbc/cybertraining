@@ -1,0 +1,6 @@
+*dat
+*.sh
+*.csh
+*.so
+*.swp
+__pycache__/
