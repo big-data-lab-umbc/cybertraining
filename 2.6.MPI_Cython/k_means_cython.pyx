@@ -16,8 +16,7 @@ cdef extern from 'cblas.h':
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-@cython.nonecheck(False)
-cdef double calc_dist_simp(double *arr1, double *arr2, long l) nogil:
+cdef double calc_dist_simp(double [:] arr1, double  [:] arr2, long l) nogil:
     cdef double d
     cdef long i
     for i in range(l):
@@ -28,18 +27,30 @@ cdef double calc_dist_simp(double *arr1, double *arr2, long l) nogil:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-@cython.nonecheck(False)
+cdef double calc_dist_noslice(double [::1,:] arr1, long ii, double [::1,:] arr2, long kk, long l) nogil:
+    cdef double d = 0.0
+    cdef double tmp
+    cdef long i
+    for i in range(l):
+        tmp = arr1[i,ii]-arr2[i,kk]
+        d += tmp*tmp
+
+    d = sqrt(d)
+    return d
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def calc_dist(arr1, arr2):
     # Get two memory views
     cdef double [:] arr_1 = arr1
     cdef double [:] arr_2 = arr2
     cdef long elem = len(arr1)
     # cdef double res = calc_dist_blas(arr_1, arr_2,elem)
-    cdef double res = calc_dist_simp(&arr_1[0], &arr_2[0], elem)
+    cdef double res = calc_dist_simp(arr_1, arr_2, elem)
     # print(res)
     return res
 
-# This should be a BLAS operation
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef double calc_dist_blas(double [:] arr1, double [:] arr2, long elem) nogil:
@@ -55,7 +66,6 @@ cdef double calc_dist_blas(double [:] arr1, double [:] arr2, long elem) nogil:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-@cython.nonecheck(False)
 def assign_and_get_newsum(indata,ctd,nk):
     cdef int ii,kk,jj
     cdef int nelem = indata.shape[0]
@@ -68,13 +78,13 @@ def assign_and_get_newsum(indata,ctd,nk):
 
     cl = empty(nrec,dtype=int)
     cl.fill(ncl)
-    outsum=zeros(shape=(nelem,ncl))
+    outsum=zeros(shape=(nelem,ncl),order='F')
     
     cdef long clj = 0
-    cdef long [:] cl_mview = cl
-    cdef double [:,:] outsum_mview = outsum
-    cdef double [:,:] indata_mview = indata
-    cdef double [:,:] ctd_mview = ctd
+    cdef long [::1] cl_mview = cl
+    cdef double [::1,:] outsum_mview = outsum
+    cdef double [::1,:] indata_mview = indata
+    cdef double [::1,:] ctd_mview = ctd
 
 
 
@@ -84,7 +94,8 @@ def assign_and_get_newsum(indata,ctd,nk):
         for kk in range(ncl):
             # tmpdd=calc_sqdist(indata(:,ii),ctd(:,kk),nelem)
             # Use BLAS here
-            tmpdd = calc_dist_blas(indata_mview[:,ii],ctd_mview[:,kk],nelem)
+            # tmpdd = calc_dist_simp(indata_mview[:,ii],ctd_mview[:,kk],nelem)
+            tmpdd = calc_dist_noslice(indata_mview,ii,ctd_mview,kk,nelem)
             # Simple, Safe, Fast Squaring
             tmpdd *= tmpdd
             if (tmpdd < mindd):
@@ -106,10 +117,22 @@ def assign_and_get_newsum(indata,ctd,nk):
             outsum_mview[ii,clj] += indata_mview[ii,jj]
     return cl,outsum
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def get_wcv_sum(indata,ctd,cl):
-    nelem, nrec = indata.shape
-    ncl = ctd.shape[1]
-    outsum=zeros(nelem)
+    cdef int nelem = indata.shape[0]
+    cdef int nrec = indata.shape[1]
+    cdef int ncl = ctd.shape[1]
+    cdef int ii,mm
+    cdef long cli
+    outsum=empty(shape=(nelem,ncl))
+    cdef long [:] cl_mview = cl
+    cdef double [:,:] ctd_mview = ctd
+    cdef double [:,:] outsum_mview = outsum
+    cdef double [:,:] indata_mview = indata
     for mm in range(nelem):
-       for ii in range(nrec):
-          outsum[mm,cl[ii]]=outsum[mm,cl[ii]]+(indata[mm,ii]-ctd[mm,cl[ii]])**2
+        for ii in range(nrec):
+            cli = cl_mview[ii]
+            outsum_mview[mm,cli]=pow(outsum_mview[mm,cli]+(indata_mview[mm,ii]-ctd_mview[mm,cli]), 2)
+    return outsum
+
