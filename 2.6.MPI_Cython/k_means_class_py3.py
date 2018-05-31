@@ -6,6 +6,7 @@ import k_means_cython as km_mod
 # from mpi4py import MPI
 import datetime
 from time import clock
+from mpi4py import MPI
 class K_means(object):
     """ 
     K-means clustering importing fortran module
@@ -33,6 +34,10 @@ class K_means(object):
         self.nelem=nelem
         self.nrec=nrec
         self.epsilon=epsilon
+        # MPI Standards
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.tprocs = self.comm.Get_size()
 
     def set_knum_id(self,knum,id_):
         self.knum=knum
@@ -75,6 +80,8 @@ class K_means(object):
         data = np.reshape(indata,newshape=[int(self.nrec),int(self.nelem)],order='C').astype(float)
         # data = np.reshape(indata,newshape=[int(self.nrec),int(self.nelem)],order='C').T.astype(float)
         print(data.shape)
+        self.startRec, self.stopRec = km_mod.get_record_spans(self.nrec, self.rank, self.tprocs)
+        print("[{:03d}] {}::{}".format(self.rank,self.startRec,self.stopRec))
         return data
 
     def get_initial_ctd(self, indata, ini_ctd_dist_min=0.125):
@@ -151,15 +158,19 @@ class K_means(object):
             cl,outsum=km_mod.assign_and_get_newsum(indata,ctd,nk)
             maxmove=0.; cl_count=[]
             for ic in range(self.knum):
+                tempctd = np.empty(shape=tmpctd.shape,order='C')
                 # idx= cl==ic+1
                 # Pure Python should use this and initialize with ncl
                 idx= cl==ic
                 cl_count.append(idx.sum())
                 # MPI Reduce on cl_count
+                cl_count[-1] = comm.allreduce(cl_count[-1],op=MPI.SUM)
                 # tmpctd=outsum[:,ic]/float(cl_count[-1])
                 # move=km_mod.calc_dist(tmpctd,ctd[:,ic])
-                tmpctd=outsum[ic,:]/float(cl_count[-1])
-                # MPI Reduce on tmpctd?
+                fodder=outsum[ic,:]/float(cl_count[-1])
+                # MPI Reduce on tmpctd -> since cl==ncl doesn't matter, this works
+                comm.Allreduce(fodder, tempctd, op=MPI.SUM)
+                # Parallel distance calculation? -> Data structure is too small to matter
                 move=km_mod.calc_dist(tmpctd,ctd[ic,:])
 
                 print("* {:02d} {}".format(ic+1,move))
