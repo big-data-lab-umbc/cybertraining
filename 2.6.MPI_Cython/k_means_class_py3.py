@@ -5,7 +5,6 @@ import numpy as np
 import k_means_cython as km_mod
 # from mpi4py import MPI
 import datetime
-from time import clock
 from mpi4py import MPI
 class K_means(object):
     """ 
@@ -152,24 +151,23 @@ class K_means(object):
         for it in range(iter_max):
         # for it in range(1):
             print("***** {}".format(it+1))
-            # startTime = MPI.Wtime()
-            startTime = clock()
+            startTime = MPI.Wtime()
             ### Assign data to centroid and get new sum (not mean yet)
-            cl,outsum=km_mod.assign_and_get_newsum(indata,ctd,nk)
+            cl,outsum=km_mod.assign_and_get_newsum(indata,ctd, self.startRec, self.stopRec, nk)
             maxmove=0.; cl_count=[]
             for ic in range(self.knum):
-                tempctd = np.empty(shape=tmpctd.shape,order='C')
                 # idx= cl==ic+1
                 # Pure Python should use this and initialize with ncl
                 idx= cl==ic
                 cl_count.append(idx.sum())
                 # MPI Reduce on cl_count
-                cl_count[-1] = comm.allreduce(cl_count[-1],op=MPI.SUM)
+                cl_count[-1] = self.comm.allreduce(cl_count[-1],op=MPI.SUM)
                 # tmpctd=outsum[:,ic]/float(cl_count[-1])
                 # move=km_mod.calc_dist(tmpctd,ctd[:,ic])
                 fodder=outsum[ic,:]/float(cl_count[-1])
+                tmpctd = np.empty(shape=fodder.shape,order='C')
                 # MPI Reduce on tmpctd -> since cl==ncl doesn't matter, this works
-                comm.Allreduce(fodder, tempctd, op=MPI.SUM)
+                self.comm.Allreduce(fodder, tmpctd, op=MPI.SUM)
                 # Parallel distance calculation? -> Data structure is too small to matter
                 move=km_mod.calc_dist(tmpctd,ctd[ic,:])
 
@@ -179,7 +177,7 @@ class K_means(object):
                 # ctd[:,ic]=tmpctd
                 ctd[ic,:]=tmpctd
             # endTime = MPI.Wtime()
-            endTime = clock()
+            endTime = MPI.Wtime()
             thisTime = endTime-startTime
             totalTime += thisTime
             print("** {}".format(datetime.timedelta(seconds=(thisTime))))
@@ -198,9 +196,9 @@ class K_means(object):
             print("!!!*** Not Converged ***!!!")
             print("** Knum= {}, ID= {}, WCV= N/A".format(self.knum,self.id_))
         else:
-            startTime = clock()
+            startTime = MPI.Wtime()
             wcvsum=km_mod.get_wcv_sum(indata,ctd,cl)
-            endTime = clock()
+            endTime = MPI.Wtime()
             thisTime = endTime - startTime
             # wcv=wcvsum.sum(axis=0)/np.asfarray(cl_count)
             wcv=wcvsum.sum(axis=1)/np.asfarray(cl_count)
