@@ -65,8 +65,8 @@ if __name__ == "__main__":
     print("Assembled columns to vector column 'features'")
     output.select("features").show()
 
-    # kmeans = KMeans().setK(10).setSeed(id)
-    kmeans = KMeans(k=k,maxIter=sid)
+    # kmeans = KMeans().setK(10).setSeed(sid)
+    kmeans = KMeans(k=k, maxIter=sid)
     model = kmeans.fit(output)
     # Make predictions
     predictions = model.transform(output)
