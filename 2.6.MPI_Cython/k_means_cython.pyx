@@ -1,8 +1,13 @@
 from numpy import zeros,empty,copy
 cimport cython
+cimport openmp
 # from cython.view cimport cvarray
 from libc.stdlib cimport malloc, free
 from libc.math cimport pow, sqrt
+# For multithreading
+from cython.parallel cimport prange
+from cython.parallel cimport parallel
+# For quitting if need be
 import sys
 print("Using Cythonized K-means")
 
@@ -41,17 +46,59 @@ def calc_dist(arr1, arr2):
     cdef double res = calc_dist_simp(arr_1, arr_2, elem)
     return res
 
+# Used in assign and get newsum
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl, int ncl, int nrec, int nk, int nelem) nogil:
+    cdef:
+        int ii
+        int kk
+        double mindd = 1.e5
+        double tmpdd = 1.e5
+        int idx = ncl
+
+        # double mindd
+        # double tempdd
+    for ii in prange(0, nrec, nk, schedule='static', nogil=True):
+        mindd=1.e5
+        idx=ncl
+        for kk in range(ncl):
+            # tmpdd=calc_sqdist(indata(:,ii),ctd(:,kk),nelem)
+            tmpdd = calc_dist_noslice(indata,ii,ctd,kk,nelem)
+            # Simple, Safe, Fast Squaring
+            tmpdd = tmpdd * tmpdd
+            if (tmpdd < mindd):
+                mindd=tmpdd
+                idx=kk
+        if (idx == ncl):
+            with gil:
+                sys.exit()
+        cl[ii]=idx
+    return
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] outsum, int nrec, int nk, int nelem) nogil:
+    cdef:
+        int jj
+        int ii
+        int clj
+    # for jj in range(0,nrec,nk):
+    # cdef compatible way since the range method is sketchy
+    for jj from 0 <= jj < nrec by nk:
+        for ii in range(nelem):
+            # outsum(ii,cl(jj))=outsum(ii,cl(jj))+indata(ii,jj)
+            clj = cl[jj] 
+            outsum[clj,ii] = outsum[clj,ii] + indata[jj,ii]
+    return
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def assign_and_get_newsum(indata,ctd,nk):
-    cdef int ii,kk,jj
     cdef int nelem = indata.shape[1]
     cdef int nrec = indata.shape[0]
     cdef int ncl = ctd.shape[0]
-    # Predefined variables for efficiency
-    cdef int idx = ncl
-    cdef double mindd = 1e5
-    cdef double tempdd = 1e6
+    # Predefined variables for efficiency and multithreading
 
     cl = empty(nrec,dtype=int)
     cl.fill(ncl)
@@ -66,37 +113,13 @@ def assign_and_get_newsum(indata,ctd,nk):
                 # cl.shape, ctd.shape, indata.shape, outsum.shape))
 
 
+    # 
+    # OpenMP is wrapped in this function
+    calculate_cl(indata_mview, ctd_mview, cl_mview, ncl, nrec, nk, nelem)
 
-    for ii in range(0,nrec,nk):
-        mindd=1e5
-        idx=ncl
-        for kk in range(ncl):
-            # tmpdd=calc_sqdist(indata(:,ii),ctd(:,kk),nelem)
-            # Use BLAS here
-            # tmpdd = calc_dist_simp(indata_mview[:,ii],ctd_mview[:,kk],nelem)
-            tmpdd = calc_dist_noslice(indata_mview,ii,ctd_mview,kk,nelem)
-            # Simple, Safe, Fast Squaring
-            tmpdd *= tmpdd
-            if (tmpdd < mindd):
-                mindd=tmpdd
-                idx=kk
-        if (idx == ncl):
-            # print("Not assigned",idx,ii,indata[:,ii])
-            print("Not assigned",idx,ii,indata[ii,:])
-            sys.exit()
-        cl_mview[ii]=idx
 
     # !!!--- Sum for New Centroid
-    # This should be done separately
-    # for jj in range(0,nrec,nk):
-    for jj in range(0,nrec,nk):
-        # do jj=1,nrec,nk
-        for ii in range(nelem):
-            # outsum(ii,cl(jj))=outsum(ii,cl(jj))+indata(ii,jj)
-            clj = cl_mview[jj] 
-            # outsum_mview[ii,clj] +=outsum_mview[ii,clj] + indata_mview[ii,jj]
-            # outsum_mview[ii,clj] += indata_mview[ii,jj]
-            outsum_mview[clj,ii] += indata_mview[jj,ii]
+    calculate_outsum(indata, cl, outsum, nrec, nk, nelem)
     return cl,outsum
 
 @cython.boundscheck(False)
@@ -139,4 +162,5 @@ def get_record_spans(long nrec, int rank, int tprocs):
         else:
             # Accounts for additional records
             startRec = l_nrec*rank + rem
+    stopRec  = startRec + l_nrec
     return startRec, stopRec
