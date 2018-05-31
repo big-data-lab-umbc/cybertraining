@@ -149,21 +149,17 @@ class K_means(object):
             startTime = clock()
             ### Assign data to centroid and get new sum (not mean yet)
             cl,outsum=km_mod.assign_and_get_newsum(indata,ctd,nk)
-            # unique, counts = np.unique(cl, return_counts=True)
-            # print("Uniques: {}".format(dict(zip(unique, counts))))
             maxmove=0.; cl_count=[]
             for ic in range(self.knum):
-                # cl + 1 is because fortran uses 0 indexing
                 # idx= cl==ic+1
                 # Pure Python should use this and initialize with ncl
                 idx= cl==ic
                 cl_count.append(idx.sum())
-                # print("cl = {}".format(cl))
-                # print("idx = {}".format(idx))
-                # print("cl_count = {}".format(cl_count))
+                # MPI Reduce on cl_count
                 # tmpctd=outsum[:,ic]/float(cl_count[-1])
                 # move=km_mod.calc_dist(tmpctd,ctd[:,ic])
                 tmpctd=outsum[ic,:]/float(cl_count[-1])
+                # MPI Reduce on tmpctd?
                 move=km_mod.calc_dist(tmpctd,ctd[ic,:])
 
                 print("* {:02d} {}".format(ic+1,move))
