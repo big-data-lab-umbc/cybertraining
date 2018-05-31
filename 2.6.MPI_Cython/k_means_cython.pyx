@@ -49,7 +49,8 @@ def calc_dist(arr1, arr2):
 # Used in assign and get newsum
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl, int ncl, int nrec, int nk, int nelem) nogil:
+# cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl, int ncl, int nrec, int nk, int nelem) nogil:
+cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl, int ncl, int startRec, int stopRec, int nk, int nelem) nogil:
     cdef:
         int ii
         int kk
@@ -59,7 +60,8 @@ cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl,
 
         # double mindd
         # double tempdd
-    for ii in prange(0, nrec, nk, schedule='static', nogil=True):
+    # for ii in prange(0, nrec, nk, schedule='static', nogil=True):
+    for ii in prange(startRec, stopRec, nk, schedule='static', nogil=True):
         mindd=1.e5
         idx=ncl
         for kk in range(ncl):
@@ -78,14 +80,16 @@ cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] outsum, int nrec, int nk, int nelem) nogil:
+# cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] outsum, int nrec, int nk, int nelem) nogil:
+cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] outsum, int startRec, int stopRec, int nk, int nelem) nogil:
     cdef:
         int jj
         int ii
         int clj
     # for jj in range(0,nrec,nk):
     # cdef compatible way since the range method is sketchy
-    for jj from 0 <= jj < nrec by nk:
+    # for jj from 0 <= jj < nrec by nk:
+    for jj from startRec <= jj < stopRec by nk:
         for ii in range(nelem):
             # outsum(ii,cl(jj))=outsum(ii,cl(jj))+indata(ii,jj)
             clj = cl[jj] 
@@ -94,10 +98,12 @@ cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def assign_and_get_newsum(indata,ctd,nk):
+def assign_and_get_newsum(indata, ctd, beginRec, finalRec, nk):
     cdef int nelem = indata.shape[1]
     cdef int nrec = indata.shape[0]
     cdef int ncl = ctd.shape[0]
+    cdef int startRec = beginRec
+    cdef int stopRec = finalRec
     # Predefined variables for efficiency and multithreading
 
     cl = empty(nrec,dtype=int)
@@ -115,11 +121,11 @@ def assign_and_get_newsum(indata,ctd,nk):
 
     # 
     # OpenMP is wrapped in this function
-    calculate_cl(indata_mview, ctd_mview, cl_mview, ncl, nrec, nk, nelem)
+    calculate_cl(indata_mview, ctd_mview, cl_mview, ncl, startRec, stopRec, nk, nelem)
 
 
     # !!!--- Sum for New Centroid
-    calculate_outsum(indata, cl, outsum, nrec, nk, nelem)
+    calculate_outsum(indata, cl, outsum, startRec, stopRec, nk, nelem)
     return cl,outsum
 
 @cython.boundscheck(False)
