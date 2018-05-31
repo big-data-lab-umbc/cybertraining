@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # print(chist.shape)
     # print(chist[000, :])
 
-    dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData1.csv",
+    dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData2008.csv",
                                header=False, inferSchema=True)
     dataFrame.printSchema()
     dataFrame.head()
