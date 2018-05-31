@@ -221,6 +221,7 @@ class K_means:
         
         """
         if self.rank == 0:
+            # The transpose keep the row major data writable via old methods
             ctd=ctd.T  #[knum,nelem]
             ctd=self._sort_centroid(ctd)
             self.print('Sorted_CF: ',ctd.sum(axis=1))
