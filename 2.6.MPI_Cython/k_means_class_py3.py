@@ -50,7 +50,7 @@ class K_means(object):
         dtp   : data type; np.float32 or np.float64, etc. 
         """
         if not os.path.isfile(fname):
-            print("File does not exist:"+fname)
+            self.print("File does not exist:"+fname)
             sys.exit()
 
         with open(fname,'rb') as fd:
@@ -78,9 +78,9 @@ class K_means(object):
         self.nrec=indata.shape[0]/self.nelem
         data = np.reshape(indata,newshape=[int(self.nrec),int(self.nelem)],order='C').astype(float)
         # data = np.reshape(indata,newshape=[int(self.nrec),int(self.nelem)],order='C').T.astype(float)
-        print(data.shape)
+        self.print(data.shape)
         self.startRec, self.stopRec = km_mod.get_record_spans(self.nrec, self.rank, self.tprocs)
-        print("[{:03d}] {}::{}".format(self.rank,self.startRec,self.stopRec))
+        self.print("[{:03d}] {}::{}".format(self.rank,self.startRec,self.stopRec))
         return data
 
     def get_initial_ctd(self, indata, ini_ctd_dist_min=0.125):
@@ -116,7 +116,7 @@ class K_means(object):
             idx+=idx
             if idx>self.nrec:
                 idx-=self.nrec
-                print("idx is over total record")
+                self.print("idx is over total record")
 
             # tmpctd=indata[:,idx]
             tmpctd=indata[idx,:]
@@ -144,13 +144,13 @@ class K_means(object):
         """
         Repeat loop until getting converged centroid
         """
-        print("Start: K={}, ID={}".format(self.knum,self.id_))
+        self.print("Start: K={}, ID={}".format(self.knum,self.id_))
         n10=3; nk=2**n10
-        print("***** nk= {}".format(nk))
+        self.print("***** nk= {}".format(nk))
         totalTime = 0
         for it in range(iter_max):
         # for it in range(1):
-            print("***** {}".format(it+1))
+            self.print("***** {}".format(it+1))
             startTime = MPI.Wtime()
             ### Assign data to centroid and get new sum (not mean yet)
             cl,outsum=km_mod.assign_and_get_newsum(indata,ctd, self.startRec, self.stopRec, nk)
@@ -171,7 +171,7 @@ class K_means(object):
                 # Parallel distance calculation? -> Data structure is too small to matter
                 move=km_mod.calc_dist(tmpctd,ctd[ic,:])
 
-                print("* {:02d} {}".format(ic+1,move))
+                self.print("* {:02d} {}".format(ic+1,move))
 
                 maxmove=max(maxmove,move)
                 # ctd[:,ic]=tmpctd
@@ -180,21 +180,21 @@ class K_means(object):
             endTime = MPI.Wtime()
             thisTime = endTime-startTime
             totalTime += thisTime
-            print("** {}".format(datetime.timedelta(seconds=(thisTime))))
+            self.print("** {}".format(datetime.timedelta(seconds=(thisTime))))
             if n10>0 and maxmove < self.epsilon*10.**n10:
                 ### Speeding up trick1
                 ### : using only part of samples in initial stages
                 n10-=1; nk=2**n10
-                print("***** nk is changed to {}".format(nk))
+                self.print("***** nk is changed to {}".format(nk))
             elif nk==1 and maxmove < self.epsilon:
-                print("*** Converged ***",it+1)
-                print("*** {} ***".format(datetime.timedelta(seconds=(totalTime))))
+                self.print("*** Converged ***",it+1)
+                self.print("*** {} ***".format(datetime.timedelta(seconds=(totalTime))))
                 break
 
 
         if it==iter_max-1:
-            print("!!!*** Not Converged ***!!!")
-            print("** Knum= {}, ID= {}, WCV= N/A".format(self.knum,self.id_))
+            self.print("!!!*** Not Converged ***!!!")
+            self.print("** Knum= {}, ID= {}, WCV= N/A".format(self.knum,self.id_))
         else:
             startTime = MPI.Wtime()
             wcvsum=km_mod.get_wcv_sum(indata,ctd,cl)
@@ -204,7 +204,7 @@ class K_means(object):
             wcv=wcvsum.sum(axis=1)/np.asfarray(cl_count)
             # cf=ctd.sum(axis=0)
             cf=ctd.sum(axis=1)
-            print("** Knum= {}, ID= {}, Total WCV= {}, LowestCF WCV={}, WCV Time= {}".format(
+            self.print("** Knum= {}, ID= {}, Total WCV= {}, LowestCF WCV={}, WCV Time= {}".format(
                 # self.knum,self.id_,wcv.sum(),wcv[np.argsort(cf)[0]],datetime.timedelta(seconds=thisTime)))
                 self.knum,self.id_,wcv.sum(),wcv[np.argsort(cf)[0]],datetime.timedelta(seconds=thisTime)))
 
@@ -220,7 +220,7 @@ class K_means(object):
         """
         ctd=ctd.T  #[knum,nelem]
         ctd=self._sort_centroid(ctd)
-        print('Sorted_CF: ',ctd.sum(axis=1))
+        self.print('Sorted_CF: ',ctd.sum(axis=1))
 
         fname=fnamehead+'.cent_k{:02d}_id{:02d}_{}x{}'.format(self.knum,self.id_,self.knum,self.nelem)
         if ftype=='b':
@@ -260,4 +260,10 @@ class K_means(object):
             ctd0=np.concatenate((ctd0,ctd2))
         return ctd0
             
+    def print(self, string):
+        """(str, [any]) -> None
         
+        A lazy way to restrict MPI printing. Checks it's process rank and only prints
+        if self.rank == 0."""
+        if self.rank == 0:
+            print(string)
