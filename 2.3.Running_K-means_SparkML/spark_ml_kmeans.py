@@ -98,9 +98,9 @@ if __name__ == "__main__":
     ctd = centers
     print("Cluster Centers: ")
 
-    ctd = array(centers)
-    ctd = ctd.reshape([10,42])
-    print(ctd)
+    # ctd = array(centers)
+    # ctd = ctd.reshape([10,42])
+    # print(ctd)
 
     # def write_centroid(fname,ctd,ftype):
     #     """
