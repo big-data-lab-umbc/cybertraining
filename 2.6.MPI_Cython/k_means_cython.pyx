@@ -50,12 +50,11 @@ def calc_dist(arr1, arr2):
 # cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl, int ncl, int nrec, int nk, int nelem) nogil:
 cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl, int ncl, int startRec, int stopRec, int nk, int nelem) nogil:
     cdef:
-        int ii
-        int kk
+        int ii, kk
         double mindd = 1.e5
         double tmpdd = 1.e5
         int idx = ncl
-
+    # OpenMP Enabled Here
     for ii in prange(startRec, stopRec, nk, schedule='static', nogil=True):
         mindd=1.e5
         idx=ncl
@@ -76,9 +75,7 @@ cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl,
 @cython.wraparound(False)
 cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] outsum, int startRec, int stopRec, int nk, int nelem) nogil:
     cdef:
-        int jj
-        int ii
-        int clj
+        int jj, ii, clj
     # cdef compatible way since the range method is sketchy in cython
     for jj from startRec <= jj < stopRec by nk:
         for ii in range(nelem):
@@ -88,48 +85,41 @@ cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def assign_and_get_newsum(indata, ctd, beginRec, finalRec, nk):
+def assign_and_get_newsum(double [:,::1] indata, double [:,::1] ctd, int startRec, int stopRec, int nk):
     cdef int nelem = indata.shape[1]
     cdef int nrec = indata.shape[0]
     cdef int ncl = ctd.shape[0]
-    cdef int startRec = beginRec
-    cdef int stopRec = finalRec
-    # Important for speed
+    cdef long clj = 0
+    # Important for the return statement
     cl = empty(nrec,dtype=int)
     cl.fill(ncl)
-    outsum=zeros(shape=(ncl,nelem),order='C')
-    
-    cdef long clj = 0
+    outsum = zeros(shape=(ncl,nelem),order='C')
     cdef long [::1] cl_mview = cl
     cdef double [:,::1] outsum_mview = outsum
-    cdef double [:,::1] indata_mview = indata
-    cdef double [:,::1] ctd_mview = ctd
     # OpenMP is wrapped in this function
-    calculate_cl(indata_mview, ctd_mview, cl_mview, ncl, startRec, stopRec, nk, nelem)
+    calculate_cl(indata, ctd, cl_mview, ncl, startRec, stopRec, nk, nelem)
 
 
     # !!!--- Sum for New Centroid
-    calculate_outsum(indata, cl, outsum, startRec, stopRec, nk, nelem)
+    calculate_outsum(indata, cl_mview, outsum_mview, startRec, stopRec, nk, nelem)
     return cl,outsum
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_wcv_sum(indata,ctd,cl,startRec,stopRec):
+def get_wcv_sum(double [:,::1] indata, double [:,::1] ctd, long [:] cl, int startRec, int stopRec):
     cdef int nelem = indata.shape[1]
     cdef int nrec = indata.shape[0]
     cdef int ncl = ctd.shape[0]
     cdef int ii,mm
     cdef long cli
-    outsum=zeros(shape=(ncl,nelem),order='C')
-    cdef long [:] cl_mview = cl
-    cdef double [:,::1] ctd_mview = ctd
+    # Need to return a numpy array
+    outsum = zeros(shape=(ncl,nelem),order='C')
     cdef double [:,::1] outsum_mview = outsum
-    cdef double [:,::1] indata_mview = indata
     cdef double tmp
     for ii in range(startRec,stopRec):
         for mm in range(nelem):
-            cli = cl_mview[ii]
-            tmp = indata_mview[ii,mm] - ctd_mview[cli,mm]
+            cli = cl[ii]
+            tmp = indata[ii,mm] - ctd[cli,mm]
             outsum_mview[cli,mm] += tmp*tmp
     return outsum
 
