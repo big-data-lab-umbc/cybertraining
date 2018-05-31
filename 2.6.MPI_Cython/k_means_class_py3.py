@@ -154,20 +154,24 @@ class K_means(object):
             startTime = MPI.Wtime()
             ### Assign data to centroid and get new sum (not mean yet)
             cl,outsum=km_mod.assign_and_get_newsum(indata,ctd, self.startRec, self.stopRec, nk)
-            maxmove=0.; cl_count=[]
+            maxmove=0.
+            cl_count= np.zeros(self.knum)
             for ic in range(self.knum):
                 # idx= cl==ic+1
                 # Pure Python should use this and initialize with ncl
                 idx= cl==ic
-                cl_count.append(idx.sum())
+                # cl_count.append(idx.sum())
                 # MPI Reduce on cl_count
-                cl_count[-1] = self.comm.allreduce(cl_count[-1],op=MPI.SUM)
+                val = idx.sum()
+                tmp_count = self.comm.allreduce(val, op=MPI.SUM)
+                cl_count[ic] = tmp_count
                 # tmpctd=outsum[:,ic]/float(cl_count[-1])
                 # move=km_mod.calc_dist(tmpctd,ctd[:,ic])
-                fodder=outsum[ic,:]/float(cl_count[-1])
+                fodder = outsum[ic,:]/float(cl_count[ic])
                 tmpctd = np.empty(shape=fodder.shape,order='C')
                 # MPI Reduce on tmpctd -> since cl==ncl doesn't matter, this works
                 self.comm.Allreduce(fodder, tmpctd, op=MPI.SUM)
+                # self.comm.Barrier()
                 # Parallel distance calculation? -> Data structure is too small to matter
                 move=km_mod.calc_dist(tmpctd,ctd[ic,:])
 
@@ -176,7 +180,6 @@ class K_means(object):
                 maxmove=max(maxmove,move)
                 # ctd[:,ic]=tmpctd
                 ctd[ic,:]=tmpctd
-            # endTime = MPI.Wtime()
             endTime = MPI.Wtime()
             thisTime = endTime-startTime
             totalTime += thisTime
@@ -191,17 +194,22 @@ class K_means(object):
                 self.print("*** {} ***".format(datetime.timedelta(seconds=(totalTime))))
                 break
 
-
         if it==iter_max-1:
             self.print("!!!*** Not Converged ***!!!")
             self.print("** Knum= {}, ID= {}, WCV= N/A".format(self.knum,self.id_))
         else:
             startTime = MPI.Wtime()
-            wcvsum=km_mod.get_wcv_sum(indata,ctd,cl)
+            # Wcv is a partial sum of only one set of records
+            wcvsum  = km_mod.get_wcv_sum(indata,ctd,cl,self.startRec,self.stopRec)
+            # self.comm.Allreduce(fodder, wcvsum, op=MPI.SUM)
             endTime = MPI.Wtime()
             thisTime = endTime - startTime
             # wcv=wcvsum.sum(axis=0)/np.asfarray(cl_count)
-            wcv=wcvsum.sum(axis=1)/np.asfarray(cl_count)
+            fodder = wcvsum.sum(axis=1)
+            wcv = np.empty(shape=fodder.shape)
+            self.comm.Allreduce(fodder, wcv, op=MPI.SUM)
+            wcv=wcv/cl_count
+            
             # cf=ctd.sum(axis=0)
             cf=ctd.sum(axis=1)
             self.print("** Knum= {}, ID= {}, Total WCV= {}, LowestCF WCV={}, WCV Time= {}".format(
@@ -218,16 +226,17 @@ class K_means(object):
         ftype='t': text
         
         """
-        ctd=ctd.T  #[knum,nelem]
-        ctd=self._sort_centroid(ctd)
-        self.print('Sorted_CF: ',ctd.sum(axis=1))
+        if self.rank == 0:
+            ctd=ctd.T  #[knum,nelem]
+            ctd=self._sort_centroid(ctd)
+            self.print('Sorted_CF: ',ctd.sum(axis=1))
 
-        fname=fnamehead+'.cent_k{:02d}_id{:02d}_{}x{}'.format(self.knum,self.id_,self.knum,self.nelem)
-        if ftype=='b':
-            with open(fname+'.float64_dat','wb') as fd:
-                ctd.tofile(fd)
-        elif ftype=='t':
-            np.savetxt(fname+'.txt',ctd,fmt='%.8f',delimiter=' ')
+            fname=fnamehead+'.cent_k{:02d}_id{:02d}_{}x{}'.format(self.knum,self.id_,self.knum,self.nelem)
+            if ftype=='b':
+                with open(fname+'.float64_dat','wb') as fd:
+                    ctd.tofile(fd)
+            elif ftype=='t':
+                np.savetxt(fname+'.txt',ctd,fmt='%.8f',delimiter=' ')
 
         return
 
@@ -260,10 +269,15 @@ class K_means(object):
             ctd0=np.concatenate((ctd0,ctd2))
         return ctd0
             
-    def print(self, string):
+    def print(self, *args):
         """(str, [any]) -> None
         
         A lazy way to restrict MPI printing. Checks it's process rank and only prints
         if self.rank == 0."""
         if self.rank == 0:
-            print(string)
+            print(*args)
+            sys.stdout.flush()
+
+    def Allprint(self,*args):
+        print("[{:03d}] ".format(self.rank),*args)
+        sys.stdout.flush()

@@ -128,9 +128,9 @@ def assign_and_get_newsum(indata, ctd, beginRec, finalRec, nk):
     calculate_outsum(indata, cl, outsum, startRec, stopRec, nk, nelem)
     return cl,outsum
 
-@cython.boundscheck(False)
+# @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_wcv_sum(indata,ctd,cl):
+def get_wcv_sum(indata,ctd,cl,startRec,stopRec):
     cdef int nelem = indata.shape[1]
     cdef int nrec = indata.shape[0]
     cdef int ncl = ctd.shape[0]
@@ -142,11 +142,11 @@ def get_wcv_sum(indata,ctd,cl):
     cdef double [:,::1] outsum_mview = outsum
     cdef double [:,::1] indata_mview = indata
     cdef double tmp
-    for ii in range(nrec):
+    for ii in range(startRec,stopRec):
         for mm in range(nelem):
             cli = cl_mview[ii]
             # outsum_mview[mm,cli]=pow(outsum_mview[mm,cli]+(indata_mview[mm,ii]-ctd_mview[mm,cli]), 2)
-            tmp = (indata_mview[ii,mm] - ctd_mview[cli,mm])
+            tmp = indata_mview[ii,mm] - ctd_mview[cli,mm]
             outsum_mview[cli,mm] += tmp*tmp
     return outsum
 
