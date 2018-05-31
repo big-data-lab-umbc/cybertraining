@@ -1,7 +1,7 @@
 from numpy import zeros,empty,copy
 cimport cython
 cimport openmp
-# from cython.view cimport cvarray
+
 from libc.stdlib cimport malloc, free
 from libc.math cimport pow, sqrt
 # For multithreading
@@ -9,7 +9,6 @@ from cython.parallel cimport prange
 from cython.parallel cimport parallel
 # For quitting if need be
 import sys
-print("Using Cythonized K-means")
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -29,7 +28,6 @@ cdef double calc_dist_noslice(double [:,::1] arr1, long ii, double [:,::1] arr2,
     cdef double tmp
     cdef long i
     for i in range(l):
-        # tmp = arr1[i,ii]-arr2[i,kk]
         tmp = arr1[ii,i]-arr2[kk,i]
         d += tmp*tmp
 
@@ -58,14 +56,10 @@ cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl,
         double tmpdd = 1.e5
         int idx = ncl
 
-        # double mindd
-        # double tempdd
-    # for ii in prange(0, nrec, nk, schedule='static', nogil=True):
     for ii in prange(startRec, stopRec, nk, schedule='static', nogil=True):
         mindd=1.e5
         idx=ncl
         for kk in range(ncl):
-            # tmpdd=calc_sqdist(indata(:,ii),ctd(:,kk),nelem)
             tmpdd = calc_dist_noslice(indata,ii,ctd,kk,nelem)
             # Simple, Safe, Fast Squaring
             tmpdd = tmpdd * tmpdd
@@ -80,18 +74,14 @@ cdef void calculate_cl(double [:,::1] indata, double [:,::1] ctd, long [::1] cl,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-# cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] outsum, int nrec, int nk, int nelem) nogil:
 cdef void calculate_outsum(double [:,::1] indata, long [::1] cl, double [:,::1] outsum, int startRec, int stopRec, int nk, int nelem) nogil:
     cdef:
         int jj
         int ii
         int clj
-    # for jj in range(0,nrec,nk):
-    # cdef compatible way since the range method is sketchy
-    # for jj from 0 <= jj < nrec by nk:
+    # cdef compatible way since the range method is sketchy in cython
     for jj from startRec <= jj < stopRec by nk:
         for ii in range(nelem):
-            # outsum(ii,cl(jj))=outsum(ii,cl(jj))+indata(ii,jj)
             clj = cl[jj] 
             outsum[clj,ii] = outsum[clj,ii] + indata[jj,ii]
     return
@@ -104,8 +94,7 @@ def assign_and_get_newsum(indata, ctd, beginRec, finalRec, nk):
     cdef int ncl = ctd.shape[0]
     cdef int startRec = beginRec
     cdef int stopRec = finalRec
-    # Predefined variables for efficiency and multithreading
-
+    # Important for speed
     cl = empty(nrec,dtype=int)
     cl.fill(ncl)
     outsum=zeros(shape=(ncl,nelem),order='C')
@@ -115,11 +104,6 @@ def assign_and_get_newsum(indata, ctd, beginRec, finalRec, nk):
     cdef double [:,::1] outsum_mview = outsum
     cdef double [:,::1] indata_mview = indata
     cdef double [:,::1] ctd_mview = ctd
-    # print("cl.shape = {}, ctd.shape = {}, indata.shape = {}, outsum.shape = {}".format(
-                # cl.shape, ctd.shape, indata.shape, outsum.shape))
-
-
-    # 
     # OpenMP is wrapped in this function
     calculate_cl(indata_mview, ctd_mview, cl_mview, ncl, startRec, stopRec, nk, nelem)
 
@@ -128,7 +112,7 @@ def assign_and_get_newsum(indata, ctd, beginRec, finalRec, nk):
     calculate_outsum(indata, cl, outsum, startRec, stopRec, nk, nelem)
     return cl,outsum
 
-# @cython.boundscheck(False)
+@cython.boundscheck(False)
 @cython.wraparound(False)
 def get_wcv_sum(indata,ctd,cl,startRec,stopRec):
     cdef int nelem = indata.shape[1]
@@ -145,7 +129,6 @@ def get_wcv_sum(indata,ctd,cl,startRec,stopRec):
     for ii in range(startRec,stopRec):
         for mm in range(nelem):
             cli = cl_mview[ii]
-            # outsum_mview[mm,cli]=pow(outsum_mview[mm,cli]+(indata_mview[mm,ii]-ctd_mview[mm,cli]), 2)
             tmp = indata_mview[ii,mm] - ctd_mview[cli,mm]
             outsum_mview[cli,mm] += tmp*tmp
     return outsum
