@@ -42,6 +42,7 @@ infile = indir + 'aquad3c6tvppcl.noMissing.20050101200512313445612x42.float32.da
 
 nelem = 42
 chist = bin_file_read2mtx(infile)
+print(chist.shape)
 
 n = chist.shape[0]
 m = n / nelem
