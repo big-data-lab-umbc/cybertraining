@@ -47,6 +47,7 @@ print(chist.shape)
 n = chist.shape[0]
 print(n)
 m = n / nelem
+m = int(m)
 print(m)
 chist = chist.reshape([m, nelem])
 
