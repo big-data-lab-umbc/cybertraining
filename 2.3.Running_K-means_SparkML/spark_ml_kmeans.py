@@ -45,7 +45,9 @@ chist = bin_file_read2mtx(infile)
 print(chist.shape)
 
 n = chist.shape[0]
+print(n)
 m = n / nelem
+print(m)
 chist = chist.reshape([m, nelem])
 
 print(chist.shape)
