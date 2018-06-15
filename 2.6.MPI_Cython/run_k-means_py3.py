@@ -29,7 +29,7 @@ num_try=1
 # for kk in range(4,6,1):
 for kk in range(10,11,1):
     # for iid in range(1,num_try+1,1):
-    for iid in range(1,2):
+    for iid in range(24,25):
         km.set_knum_id(knum=kk,id_=iid)
         ictd=km.get_initial_ctd(indata)
         ctd=km.K_means_main(indata,ictd) #[nelem,knum]

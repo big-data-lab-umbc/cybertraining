@@ -140,7 +140,8 @@ class K_means:
         Repeat loop until getting converged centroid
         """
         self.print("Start: K={}, ID={}".format(self.knum,self.id_))
-        n10=3; nk=2**n10
+        n10=0; nk=2**n10
+        # n10=3; nk=2**n10
         self.print("***** nk= {}".format(nk))
         totalTime = 0
         for it in range(iter_max):
