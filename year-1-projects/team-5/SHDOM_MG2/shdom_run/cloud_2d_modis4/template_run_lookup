@@ -1,0 +1,46 @@
+#!/bin/bash
+# Author: Meng Gao
+# DATE: 2018
+
+prpfile=<PRP>
+outbase=<NAME>
+Nx=<NX>
+Ny=<NY>
+#  Set the solar direction and flux and wavelength
+mu0=<MU0>
+phi0=0.0
+flux0=1.0
+wavelen=<WAVE>
+
+#  Set some SHDOM parameters: 
+Nmu=16; 
+Nphi=32       # angular resolution
+Nz=<NZ>
+#Nz=6
+#set BCflag=0;  set IPflag=3;   set deltaM="T"
+#BCflag=0 #periodic in x and y
+BCflag=0 
+IPflag=<3d> #0:3d, 3: 1d3
+deltaM="T"
+solacc=1.0E-5
+accel=T
+maxiter=50
+splitacc=0.001
+shacc=0.0
+
+#   Output the radiance at the top of atmosphere in the solar plane
+Routparm="1.0  1 1  0 0  19  0.1 180 0.2 180 0.3 180 0.4 180 0.5 180 0.6 180 0.7 180 0.8 180 0.9 180 1.0 0 0.9 0 0.8 0 0.7 0 0.6 0 0.5 0 0.4 0 0.3 0 0.2 0 0.1 0" #z1, dx,dy
+#   Output the fluxes at the surface
+Foutparm="2 1.0  1 1" #type, z1, dx dy
+
+sfcalb=0.0 #surface albedo
+#   Run SHDOM
+
+put STEPCLOUD $prpfile NONE NONE NONE NONE "$Nx $Ny $Nz" "$Nmu $Nphi" \
+     $BCflag $IPflag $deltaM E S "$flux0 $mu0 $phi0" 0.0 $sfcalb $wavelen \
+     "$splitacc $shacc" "$accel $solacc $maxiter" \
+     2  F $Foutparm ${outbase}f.out  R $Routparm ${outbase}r.out \
+     NONE <MEMORY> 1.2 1.0 1.5  |shdom90
+
+
+
