@@ -14,7 +14,8 @@ File Directory: Each directory listed below has its own README file
 FractalCloudGeneratorver0.1     - folder containing files for running the one-dimensional fractal cloud
                                   model. All code is written in PYTHON. 
 
-SHDOM_MG2			- folder containing files for running the radiative transfer model (SHDOM). Scripts are also provided for data analysis and discussion.
+SHDOM_MG2			- folder containing files for running the radiative transfer model (SHDOM).
+		                  Scripts are also provided for data analysis and discussion.
 
 Cut_cloud_scene			- Folder containing files for cutting 50 km by 50 km cloud scenes using 
 				  raw MODIS data. Code is written in PYTHON. 
