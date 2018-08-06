@@ -1,0 +1,27 @@
+#!/bin/csh
+# Author: Meng Gao
+# DATE: 2018
+
+set AWK=awk   # use nawk on SGI and Sun
+
+
+set Solar=1     # 1 for solar, 0 for thermal
+
+set wavelen=<WAVE> #0.86 #2.1
+set scattable=<NAME>
+
+# ----------------------------------  Start of Processing
+
+
+set distflag=L                   # G=gamma, L=lognormal size distribution
+set sigma = 1.0
+set Nretab=1                     # number of effective radius in table
+set Sretab=<REFF>; set Eretab=<REFF>     # starting, ending effective radius (micron)
+set maxradius=50                 # maximum radius in distribution (micron)
+set partype = "W"                # W for water
+set avgflag=C                    # C for using central wavelength
+
+put "$wavelen $wavelen" $partype $avgflag $distflag $sigma \
+     "$Nretab $Sretab $Eretab" $maxradius $scattable | make_mie_table
+
+
