@@ -1,0 +1,39 @@
+How to start interactive job on a hpcf2013 node:
+
+srun --partition=batch --constraint=hpcf2013 -N1 -n16 --pty --preserve-env \
+--mem=MaxMemPerNode $SHELL
+
+
+Then start Matlab interactively by
+
+matlab
+
+and run smooth code with
+
+driver_cg_smooth(65,0.1,100,50,50);
+
+or
+
+driver_cg_source(1025,0.1,10,800,50,'n');
+
+or
+
+driver_cg_dirichlet(31,0.1,10,50,50,'y');
+
+
+Complete study with renaming:
+
+driver_cg_source(1025,0.1,10,800,50,'n');
+!mv solution.png sol_1025_1e-1_10_800_50.png
+!mv error.png err_1025_1e-1_10_800_50.png   
+driver_cg_source(1025,0.1,20,800,50,'n');
+!mv solution.png sol_1025_1e-1_20_800_50.png
+!mv error.png err_1025_1e-1_20_800_50.png   
+driver_cg_source(1025,0.1,40,800,50,'n');
+!mv solution.png sol_1025_1e-1_40_800_50.png
+!mv error.png err_1025_1e-1_40_800_50.png   
+driver_cg_source(1025,0.1,80,800,50,'n');
+!mv solution.png sol_1025_1e-1_80_800_50.png
+!mv error.png err_1025_1e-1_80_800_50.png   
+
+
