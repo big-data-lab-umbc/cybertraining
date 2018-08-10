@@ -1,0 +1,149 @@
+07/02/18 MGo:
+
+Tabulated data with timings rounded to 1 second:
+
+2048x2048:
+                     1 node   2 nodes   4 nodes   8 nodes  16 nodes
+ 1 proc per node       2737      1268       569       217       114
+ 2 proc per node       1615       660       223       112        63
+ 4 proc per node        911       302       119        63        40
+ 8 proc per node        900       207        69        42        34
+16 proc per node        446       176        52        44        48
+
+4096x4096:
+                     1 node   2 nodes   4 nodes   8 nodes  16 nodes
+ 1 proc per node      19928     14597      7151      3606      1519
+ 2 proc per node      12965      6850      3351      1240       577
+ 4 proc per node       7718      3556      1767       682       273
+ 8 proc per node       7269      2072      1054       464       230
+16 proc per node       3775      1927      1029       428       181
+
+8192x8192:
+                     1 node   2 nodes   4 nodes   8 nodes  16 nodes
+ 1 proc per node         ET        ET        ET        ET     11033
+ 2 proc per node         ET        ET        ET      8092      5235
+ 4 proc per node         ET        ET     11928      4717      3025
+ 8 proc per node         ET     12035      6271      3633      2489
+16 proc per node         ET     11389      6227      3781      3295
+
+
+Tabulated data with original timings up to 1/100th of 1 second:
+
+2048x2048:
+                     1 node   2 nodes   4 nodes   8 nodes  16 nodes
+ 1 proc per node    2737.32   1268.10    568.63    217.07    114.09
+ 2 proc per node    1614.83    659.83    223.16    111.93     62.64
+ 4 proc per node     911.13    302.03    118.99     63.21     40.10
+ 8 proc per node     900.49    206.58     68.56     42.36     33.94
+16 proc per node     446.30    176.24     51.87     43.59     48.43
+
+4096x4096:
+                     1 node   2 nodes   4 nodes   8 nodes  16 nodes
+ 1 proc per node   19927.93  14596.91   7150.93   3605.83   1518.97
+ 2 proc per node   12965.19   6850.01   3350.65   1239.84    577.13
+ 4 proc per node    7718.16   3555.71   1766.56    682.30    272.86
+ 8 proc per node    7268.99   2072.32   1053.73    463.92    229.69
+16 proc per node    3774.58   1926.94   1029.02    428.30    180.52
+
+8192x8192:
+                     1 node   2 nodes   4 nodes   8 nodes  16 nodes
+ 1 proc per node         ET        ET        ET        ET  11032.92
+ 2 proc per node         ET        ET        ET   8092.11   5234.72
+ 4 proc per node         ET        ET  11927.84   4716.54   3025.22
+ 8 proc per node         ET  12034.76   6271.36   3633.27   2488.60
+16 proc per node         ET  11389.23   6226.80   3780.61   3294.55
+
+
+n0002ppn0008/slurm.out:wall clock time    =   12034.76 seconds
+n0002ppn0016/slurm.out:wall clock time    =   11389.23 seconds
+
+n0004ppn0004/slurm.out:wall clock time    =   11927.84 seconds
+n0004ppn0008/slurm.out:wall clock time    =    6271.36 seconds
+n0004ppn0016/slurm.out:wall clock time    =    6226.80 seconds
+
+n0008ppn0002/slurm.out:wall clock time    =    8092.11 seconds
+n0008ppn0004/slurm.out:wall clock time    =    4716.54 seconds
+n0008ppn0008/slurm.out:wall clock time    =    3633.27 seconds
+n0008ppn0016/slurm.out:wall clock time    =    3780.61 seconds
+
+n0016ppn0001/slurm.out:wall clock time    =   11032.92 seconds
+n0016ppn0002/slurm.out:wall clock time    =    5234.72 seconds
+n0016ppn0004/slurm.out:wall clock time    =    3025.22 seconds
+n0016ppn0008/slurm.out:wall clock time    =    2488.60 seconds
+n0016ppn0016/slurm.out:wall clock time    =    3294.55 seconds
+
+
+
+07/02/18 MGo:
+This file RESULTS180702.txt used to save raw data obtained by commands:
+[gobbert N2047]$ cd N2047
+[gobbert N2047]$ grep wall n????ppn????/slurm.out > ../RESULTS180702.txt
+[gobbert N2047]$ cd ../N4095
+[gobbert N4095]$ grep wall n????ppn????/slurm.out >> ../RESULTS180702.txt
+[gobbert N4095]$ cd ../N8191
+[gobbert N8191]$ grep wall n????ppn????/slurm.out >> ../RESULTS180702.txt
+
+n0001ppn0001/slurm.out:wall clock time    =    2737.32 seconds
+n0001ppn0002/slurm.out:wall clock time    =    1614.83 seconds
+n0001ppn0004/slurm.out:wall clock time    =     911.13 seconds
+n0001ppn0008/slurm.out:wall clock time    =     900.49 seconds
+n0001ppn0016/slurm.out:wall clock time    =     446.30 seconds
+n0002ppn0001/slurm.out:wall clock time    =    1268.10 seconds
+n0002ppn0002/slurm.out:wall clock time    =     659.83 seconds
+n0002ppn0004/slurm.out:wall clock time    =     302.03 seconds
+n0002ppn0008/slurm.out:wall clock time    =     206.58 seconds
+n0002ppn0016/slurm.out:wall clock time    =     176.24 seconds
+n0004ppn0001/slurm.out:wall clock time    =     568.63 seconds
+n0004ppn0002/slurm.out:wall clock time    =     223.16 seconds
+n0004ppn0004/slurm.out:wall clock time    =     118.99 seconds
+n0004ppn0008/slurm.out:wall clock time    =      68.56 seconds
+n0004ppn0016/slurm.out:wall clock time    =      51.87 seconds
+n0008ppn0001/slurm.out:wall clock time    =     217.07 seconds
+n0008ppn0002/slurm.out:wall clock time    =     111.93 seconds
+n0008ppn0004/slurm.out:wall clock time    =      63.21 seconds
+n0008ppn0008/slurm.out:wall clock time    =      42.36 seconds
+n0008ppn0016/slurm.out:wall clock time    =      43.59 seconds
+n0016ppn0001/slurm.out:wall clock time    =     114.09 seconds
+n0016ppn0002/slurm.out:wall clock time    =      62.64 seconds
+n0016ppn0004/slurm.out:wall clock time    =      40.10 seconds
+n0016ppn0008/slurm.out:wall clock time    =      33.94 seconds
+n0016ppn0016/slurm.out:wall clock time    =      48.43 seconds
+n0001ppn0001/slurm.out:wall clock time    =   19927.93 seconds
+n0001ppn0002/slurm.out:wall clock time    =   12965.19 seconds
+n0001ppn0004/slurm.out:wall clock time    =    7718.16 seconds
+n0001ppn0008/slurm.out:wall clock time    =    7268.99 seconds
+n0001ppn0016/slurm.out:wall clock time    =    3774.58 seconds
+n0002ppn0001/slurm.out:wall clock time    =   14596.91 seconds
+n0002ppn0002/slurm.out:wall clock time    =    6850.01 seconds
+n0002ppn0004/slurm.out:wall clock time    =    3555.71 seconds
+n0002ppn0008/slurm.out:wall clock time    =    2072.32 seconds
+n0002ppn0016/slurm.out:wall clock time    =    1926.94 seconds
+n0004ppn0001/slurm.out:wall clock time    =    7150.93 seconds
+n0004ppn0002/slurm.out:wall clock time    =    3350.65 seconds
+n0004ppn0004/slurm.out:wall clock time    =    1766.56 seconds
+n0004ppn0008/slurm.out:wall clock time    =    1053.73 seconds
+n0004ppn0016/slurm.out:wall clock time    =    1029.02 seconds
+n0008ppn0001/slurm.out:wall clock time    =    3605.83 seconds
+n0008ppn0002/slurm.out:wall clock time    =    1239.84 seconds
+n0008ppn0004/slurm.out:wall clock time    =     682.30 seconds
+n0008ppn0008/slurm.out:wall clock time    =     463.92 seconds
+n0008ppn0016/slurm.out:wall clock time    =     428.30 seconds
+n0016ppn0001/slurm.out:wall clock time    =    1518.97 seconds
+n0016ppn0002/slurm.out:wall clock time    =     577.13 seconds
+n0016ppn0004/slurm.out:wall clock time    =     272.86 seconds
+n0016ppn0008/slurm.out:wall clock time    =     229.69 seconds
+n0016ppn0016/slurm.out:wall clock time    =     180.52 seconds
+n0002ppn0008/slurm.out:wall clock time    =   12034.76 seconds
+n0002ppn0016/slurm.out:wall clock time    =   11389.23 seconds
+n0004ppn0004/slurm.out:wall clock time    =   11927.84 seconds
+n0004ppn0008/slurm.out:wall clock time    =    6271.36 seconds
+n0004ppn0016/slurm.out:wall clock time    =    6226.80 seconds
+n0008ppn0002/slurm.out:wall clock time    =    8092.11 seconds
+n0008ppn0004/slurm.out:wall clock time    =    4716.54 seconds
+n0008ppn0008/slurm.out:wall clock time    =    3633.27 seconds
+n0008ppn0016/slurm.out:wall clock time    =    3780.61 seconds
+n0016ppn0001/slurm.out:wall clock time    =   11032.92 seconds
+n0016ppn0002/slurm.out:wall clock time    =    5234.72 seconds
+n0016ppn0004/slurm.out:wall clock time    =    3025.22 seconds
+n0016ppn0008/slurm.out:wall clock time    =    2488.60 seconds
+n0016ppn0016/slurm.out:wall clock time    =    3294.55 seconds
