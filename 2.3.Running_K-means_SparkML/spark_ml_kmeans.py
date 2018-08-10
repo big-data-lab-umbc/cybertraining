@@ -9,6 +9,9 @@ from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql import SparkSession
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.feature import VectorAssembler
+import pyarrow as pa
+import pyarrow.parquet as pq
+
 
 if __name__ == "__main__":
     startTime = datetime.now()
@@ -17,51 +20,59 @@ if __name__ == "__main__":
     k = int(sys.argv[1])
     sid = int(sys.argv[2])  # tials
 
+    # spark = SparkSession \
+    #     .builder \
+    #     .appName("SparkMLKMeans") \
+    #     .config("spark.sql.execution.arrow.enabled", "true") \
+    #     .getOrCreate()
+
     spark = SparkSession \
         .builder \
         .appName("SparkMLKMeans") \
-        .config("spark.sql.execution.arrow.enabled", "true") \
         .getOrCreate()
 
-def bin_file_read2mtx(fname, dtp=np.float32):
-    """ Open a binary file, and read data
-        fname : file name
-        dtp   : data type; np.float32 or np.float64, etc. """
+# ====== Binary approach ======
+# def bin_file_read2mtx(fname, dtp=np.float32):
+#     """ Open a binary file, and read data
+#         fname : file name
+#         dtp   : data type; np.float32 or np.float64, etc. """
+#
+#     if not os.path.isfile(fname):
+#         print("File does not exist:" + fname)
+#         sys.exit()
+#
+#     fd = open(fname, 'rb')
+#     bin_mat = np.fromfile(file=fd, dtype=dtp)
+#     fd.close()
+#     return bin_mat
+#
+# indir = '/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/'
+# infile = indir + 'aquad3c6tvppcl.noMissing.20050101200512313445612x42.float32.dat'
+#
+# nelem = 42
+# chist = bin_file_read2mtx(infile)
+# print(chist.shape)
+#
+# n = chist.shape[0]
+# print(n)
+# m = n / nelem
+# m = int(m)
+# print(m)
+# chist = chist.reshape([m, nelem])
+#
+# print(chist.shape)
+# print(chist[000, :])
+#
+# df = pd.DataFrame(data=chist)
+#
+# sparkdf = spark.createDataFrame(df)
 
-    if not os.path.isfile(fname):
-        print("File does not exist:" + fname)
-        sys.exit()
+# ====== end Binary approach (don't forget to change dataframe var name)======
 
-    fd = open(fname, 'rb')
-    bin_mat = np.fromfile(file=fd, dtype=dtp)
-    fd.close()
-    return bin_mat
-
-indir = '/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/'
-infile = indir + 'aquad3c6tvppcl.noMissing.20050101200512313445612x42.float32.dat'
-
-nelem = 42
-chist = bin_file_read2mtx(infile)
-print(chist.shape)
-
-n = chist.shape[0]
-print(n)
-m = n / nelem
-m = int(m)
-print(m)
-chist = chist.reshape([m, nelem])
-
-print(chist.shape)
-print(chist[000, :])
-
-df = pd.DataFrame(data=chist)
-
-sparkdf = spark.createDataFrame(df)
-
-# dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData2008.csv",
-#                            header=False, inferSchema=True)
-# sparkdf.printSchema()
-# dataFrame.head()
+dataFrame = spark.read.csv("/umbc/xfs1/cybertrn/cybertraining2018/team2/research/kmeans/kMeansData20062007.csv",
+                           header=False, inferSchema=True)
+dataFrame.printSchema()
+dataFrame.head()
 
 assembler = VectorAssembler(
     inputCols=["0", "1", "2", "3", "4", "5", "6", "7",
@@ -72,7 +83,7 @@ assembler = VectorAssembler(
                "36", "37", "38", "39", "40", "41"],
     outputCol="features")
 
-output = assembler.transform(sparkdf)
+output = assembler.transform(dataFrame)
 # print("Assembled columns to vector column 'features'")
 output.select("features").show()
 
