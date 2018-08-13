@@ -165,7 +165,6 @@ class K_means:
         # Read in only relevant records to memory
         self.startRec, self.stopRec = km_mod.get_record_spans(self.nrec, self.rank, self.tprocs)
         self.totalRec = self.stopRec - self.startRec
-        self.print(data.shape)
         bites = np.dtype(dtp).itemsize
         offset = self.startRec * bites
         with open(fname, "rb") as inFile:
