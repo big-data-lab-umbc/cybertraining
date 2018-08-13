@@ -151,16 +151,17 @@ class K_means:
             indata = self._initialize_indata(indata)
             # get initial centroid on process 0
             ctd = self.get_initial_ctd(indata, ini_ctd_dist_min)
+            # self.print(ctd.shape)
             # Allows for easy garbage collect of the big data chunk
             indata = None
         else:
             # Generate empty array
-            ctd = np.empty(shape=self.knum, dtype=np.float64)
+            ctd = np.empty(shape=(self.knum,self.nelem), dtype=np.float64)
         # MPI  Barrier!
         self.comm.barrier()
         # Distribute the initial centroids!
         self.comm.Bcast([ctd, MPI.DOUBLE],root=0)
-        
+        self.Allprint(ctd.shape)
         # Read in only relevant records to memory
         bites = np.dtype(dtp).itemsize
         offset = self.startRec * bites
