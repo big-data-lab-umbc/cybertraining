@@ -1,4 +1,4 @@
-import os.path
+import os.path, os
 import sys
 import numpy as np
 import k_means_cython as km_mod
@@ -140,7 +140,15 @@ class K_means:
         
         This is a band-aid solution which does the initialization all on process 0
         when this entirely possible to be done fully in parallel however with time 
-        constraints this is possible then only way.
+        constraints this is quickest way to get it done.
+        
+        There is a lot of repeated code which needs to be cut out and a lot of the
+        variables would normally have "references before assignment" style errors.
+        For more optimization do the following:
+        1. Refactor and rethink initial cluster calculation similar to how the
+        regular cluster calculation works. This would prevent the need to broadcast
+        the initial clusters wholesale AND prevent the repeated reading of data.
+        2. Switch away from numpy in the future
         
         """
         # self.startRec, self.stopRec = km_mod.get_record_spans(self.nrec, self.rank, self.tprocs)
@@ -154,8 +162,12 @@ class K_means:
             # self.print(ctd.shape)
             # Allows for easy garbage collect of the big data chunk
             indata = None
+            # Another patchwork fix for nrec!
+            self.comm.bcast(self.nrec,root=0)
         else:
             # Generate empty array
+            self.nrec = None
+            self.nrec = self.comm.bcast(self.nrec, root=0)
             ctd = np.empty(shape=(self.knum,self.nelem), dtype=np.float64)
         # MPI  Barrier!
         self.comm.barrier()
@@ -166,13 +178,13 @@ class K_means:
         self.startRec, self.stopRec = km_mod.get_record_spans(self.nrec, self.rank, self.tprocs)
         self.totalRec = self.stopRec - self.startRec
         bites = np.dtype(dtp).itemsize
-        offset = self.startRec * bites
+        offset = self.startRec * self.nelem * bites
         with open(fname, "rb") as inFile:
             # Use the simple file pointer solution
             # Find start of data
-            inFile.seek(offset)
-            # Read in data
             self.Allprint("offset: {} totalRec: {}".format(offset, self.totalRec))
+            inFile.seek(offset, 0)
+            # Read in data
             indata = np.fromfile(inFile, dtype=dtp, count=self.totalRec*self.nelem)
             self.Allprint("Chunk size: {}".format(indata.shape))
         # Reshape
