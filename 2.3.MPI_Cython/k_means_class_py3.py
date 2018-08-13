@@ -72,12 +72,12 @@ class K_means:
         1. float32 => float64
         2. reshape
         """
-
         self.nrec=indata.shape[0]/self.nelem
         data = np.reshape(indata,newshape=[int(self.nrec),int(self.nelem)],order='C').astype(float)
-        self.print(data.shape)
         self.startRec, self.stopRec = km_mod.get_record_spans(self.nrec, self.rank, self.tprocs)
         self.print("[{:03d}] {}::{}".format(self.rank,self.startRec,self.stopRec))
+        self.totalRec = self.stopRec - self.startRec
+        self.print(data.shape)
         return data
 
     def get_initial_ctd(self, indata, ini_ctd_dist_min=0.125):
@@ -134,6 +134,55 @@ class K_means:
                 break
 
         return test
+
+    def parallel_init_ctd(self, fname, dtp=np.float32, ini_ctd_dist_min=0.125):
+        """
+        
+        This is a band-aid solution which does the initialization all on process 0
+        when this entirely possible to be done fully in parallel however with time 
+        constraints this is possible then only way.
+        
+        """
+        # self.startRec, self.stopRec = km_mod.get_record_spans(self.nrec, self.rank, self.tprocs)
+        if self.rank == 0:
+            # read in binary data on process 0
+            indata = self.read_bin_data(fname,dtp=np.float32)
+            # reshape data on process 0
+            indata = self._initialize_indata(indata)
+            # get initial centroid on process 0
+            ctd = self.get_initial_ctd(indata, ini_ctd_dist_min)
+            # Allows for easy garbage collect of the big data chunk
+            indata = None
+        else:
+            # Generate empty array
+            ctd = np.empty(shape=self.knum, dtype=np.float64)
+        # MPI  Barrier!
+        self.comm.barrier()
+        # Distribute the initial centroids!
+        self.comm.Bcast([ctd, MPI.DOUBLE],root=0)
+        
+        # Read in only relevant records to memory
+        bites = np.dtype(dtp).itemsize
+        offset = self.startRec * bites
+        with open(fname, "rb") as inFile:
+            # Use the simple file pointer solution
+            # Find start of data
+            inFile.seek(offset)
+            # Read in data
+            self.Allprint("offset: {} totalRec: {}".format(offset, self.totalRec))
+            indata = np.fromfile(inFile, dtype=dtp, count=self.totalRec*self.nelem)
+            self.Allprint("Chunk size: {}".format(indata.shape))
+        # Reshape
+        indata = self._initialize_indata(indata)
+
+        # For laziness set these values
+        self.startRec = 0
+        self.stopRec = self.totalRec
+
+        # Return all things!
+        return indata,ctd
+        
+
 
     def K_means_main(self,indata,ctd,iter_max=999):
         """
