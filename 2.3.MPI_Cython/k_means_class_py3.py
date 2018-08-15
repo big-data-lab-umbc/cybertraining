@@ -192,7 +192,7 @@ class K_means:
 
         # For laziness set these values
         self.startRec = 0
-        self.stopRec = self.totalRec
+        self.stopRec = indata.shape[0]
 
         # Return all things!
         return indata,ctd
