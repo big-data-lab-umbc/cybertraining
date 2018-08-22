@@ -40,13 +40,11 @@ files are transferred to the cluster: `shared library`, `run_k-means_py3.py`, `k
 This is new implementation using SparkMLlibrary.
 
 How to run it:
-    1. First run test2read_clustering_input_py3.py and generate a .csv file as Spark programs' input. 
-:
-    2. Submit spark_ml_kmeans.py to spark. spark-submit spark_ml_kmeans.py seedid. (seed id is the kmeans seed id for repeatable reason)
-    
-:  e.g. spark-submit spark_ml_kmeans.py 1
 
-:   3. The output is printed in the console.
+1. First run test2read_clustering_input_py3.py and generate a .csv file as Spark programs' input. 
+2. Submit spark_ml_kmeans.py to spark. spark-submit spark_ml_kmeans.py seedid. (seed id is the kmeans seed id for repeatable reason)
+e.g. spark-submit spark_ml_kmeans.py 1
+3. The output is printed in the console.
  
 ### 3 Check_output
 cent_init_display_42bins_obs.py3.py  
