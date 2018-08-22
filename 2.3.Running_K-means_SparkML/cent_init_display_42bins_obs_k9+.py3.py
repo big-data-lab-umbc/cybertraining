@@ -133,7 +133,7 @@ sid  = int(sys.argv[2])      # id
 
 dir1 = '/umbc/xfs1/cybertrn/cybertraining2018/team2/research/code/github/sparkML/K-means_Clustering4CloudHistogram/2.3.Running_K-means_SparkML/sparkML.float64_dat'
 # mdnm = 'Aqua_b42_TR'
-ctdfnm = 'sparkML.float64_dat'
+ctdfnm = 'sparkML'+str(id)+'.float64_dat'
 ncl=km; nelem=42
 ###
 ###---- Read Centroid
