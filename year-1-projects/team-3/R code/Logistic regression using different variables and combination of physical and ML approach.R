@@ -126,6 +126,6 @@ prob<-predict(mylogit,raw622_gran,type="response")
 
 mylogit<-glm("dust ~Band16+Band35+Band29+Band26+Band9+Band23+v1+v2+v3+v4", ds715.train, family="binomial")
 prob<-predict(mylogit,raw622_gran,type="response")
-write.table(as.data.frame(prob),file="C://Users//peichangshi//Documents//UMBC//is698//622predict2.txt",sep="\t",col.names = F,row.names=FALSE)
+write.table(as.data.frame(prob),file="~//is698//622predict2.txt",sep="\t",col.names = F,row.names=FALSE)
 
 
