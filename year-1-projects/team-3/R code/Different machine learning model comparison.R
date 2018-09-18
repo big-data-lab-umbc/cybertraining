@@ -100,5 +100,5 @@ youden<-se+sp-1
 fname<-"Ensemble"
 df<-rbind(df,data.frame(fname,auc,accuracy,youden))
 df
-write.csv(df,file="C://Users//peichangshi//Documents//UMBC//is698//is698 table 1.csv")
+write.csv(df,file="~//is698//is698 table 1.csv")
 
