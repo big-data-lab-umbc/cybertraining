@@ -1,5 +1,3 @@
-library(rpart)
-library(caret)
 library(randomForest)
 library(pROC)
 library(caret)
