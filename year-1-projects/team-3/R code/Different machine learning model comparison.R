@@ -2,7 +2,6 @@
 library(caret)
 library(randomForest)
 library(pROC)
-library(caret)
 library(ROCR)
 library(e1071)
 library(nnet)
@@ -21,6 +20,7 @@ ds_prep <- function(fname) {
   p1$X<-NULL
   p1$dust<-as.integer(p1$dust)
   typeof(p1$dust)
+  # recode outcome varible into 2 categories: cloud and dust, dust to 1, cloud and no dust to 0
   p1$dust[which(p1$dust ==2)]<-0
   p1$dust[which(p1$dust ==3)]<-1
   p1$v1 = p1$Band2/p1$Band31 
