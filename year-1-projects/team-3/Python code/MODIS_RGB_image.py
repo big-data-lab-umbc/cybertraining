@@ -10,7 +10,7 @@ from scipy import interpolate
 from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-#ModPred = np.loadtxt('ModPred.txt')
+# the predicted probability for MODIS region from R program
 ModPred = np.loadtxt('622predict2.txt')
 print(ModPred.shape)
 ModPred = np.ravel(ModPred)
@@ -30,7 +30,7 @@ def Read_MODIS(filename):
     lon = MYD.select('Longitude').get()
     return lat,lon
 
-lat,lon = Read_MODIS('/home/pshi1/team3/Research/Progress3_DustStorm/22June2009_PhyAgm/MYD021KM.A2009173.1505.061.2018044055419.hdf')
+lat,lon = Read_MODIS('/team3/Research/Progress3_DustStorm/22June2009_PhyAgm/MYD021KM.A2009173.1505.061.2018044055419.hdf')
 print(lat.shape,lon.shape)
 
 y = np.arange(0,2026,5)
@@ -54,7 +54,7 @@ ll_lat = np.min(lat)
 ll_lon = np.min(lon)
 ur_lat = np.max(lat)
 ur_lon = np.max(lon)
-
+# the following is to get RGB image from predicted data
 fig,ax = plt.subplots(figsize=(11,8))
 map=Basemap(projection = 'cyl', llcrnrlat = ll_lat, urcrnrlat = ur_lat, llcrnrlon = ll_lon, urcrnrlon = ur_lon)
 map.drawparallels(np.arange(ll_lat,ur_lat,10),labels=[1,0,0,0],fontsize=10)
@@ -62,5 +62,5 @@ map.drawmeridians(np.arange(ll_lon,ur_lon,20),labels=[0,0,0,0],fontsize=10)
 map.pcolormesh(lon_new,lat_new,ModPred_interest,cmap='binary',vmin=0,vmax=1.0)
 #divider = make_axes_locatable(ax)
 plt.colorbar(orientation='vertical',pad=0.05,fraction = 0.1,aspect=20)
-fig.savefig('/home/pshi1/test.png', dpi=300)
+fig.savefig('test.png', dpi=300)
 
