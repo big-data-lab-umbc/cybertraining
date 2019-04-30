@@ -2,8 +2,12 @@
 Team 4 Project of the CyberTraining program at UMBC in 2018 (http://cybertraining.umbc.edu/)
 
 Title: Spatio-Temporal Climate Data Causality Analytics – An Analysis of ENSO’s Global Impacts 
+
 Team members: Hua Song, Jing Tian, Jingfeng Huang
+
 Mentors: Jianwu Wang and Zhibo Zhang
+
+Additional help from Pei Guo
 
 There are three folders:
 
