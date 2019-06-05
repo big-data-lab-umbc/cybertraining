@@ -13,5 +13,5 @@
 #time main.py data_eof_3.csv
 #time ../main.py data_eof_5.csv
 #time ../main.py data_eof_30.csv
-time ../main.py Data_Selected_Modes.csv
-python ../post_process.py
+time main.py Data_Selected_Modes.csv
+python post_process.py
