@@ -1,0 +1,4 @@
+Effect-Node,Cause-Node,Time-Lag,Strength,Method
+eof_ts-msl-12,eof_ts-si10-14,1,2.616493581969793e-85,PCMCI
+eof_ts-sst-5,eof_ts-sst-20,0,7.828398174066477e-80,PCMCI
+eof_ts-sst-20,eof_ts-msl-12,2,1.81915980344916e-63,PCMCI

@@ -1,0 +1,24 @@
+Python program plan.
+
+[ ] Could use more complicated code to decide where timelag is placed: something triggy?
+[ ] Color gradient - See Stackexchange post
+[ ] Link with main github.
+
+Prep:
+    Map
+        Read in map image.
+        Get size.
+
+    Nodes
+        Read in nodes.
+        Convert node locations to mapscale. (or do later?)
+        Make node dictionary
+
+    Connections
+        Read in Connections
+        Need nodeA, nodeB, variable(1, 2, 3, 4)
+
+    Filter nodes to only include those with connections. (Or don't? Leave optional)
+
+Testing:
+    Check x 1,000,000

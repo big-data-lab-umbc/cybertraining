@@ -2,9 +2,9 @@ Team 2 Project of the CyberTraining program at UMBC in 2019 (http://cybertrainin
 
 **Title**:
 
-**Team members**: 
+**Team members**: Steve Hussung, Suhail Mahmud, Akila Sampath, Mengxi Wu, Pei Guo (RA)
 
-**Mentors**: 
+**Mentors**: Jianwu Wang
 
 **Abstract**:
 
