@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 
 #My imports
-from read_data import read_data
+from graphic_supplemental import *
 
 """
 Todo:
@@ -49,10 +49,10 @@ color_map_background = False
 #Make True to avoid graphing nodes not involved in connections, False to graph them.
 remove_inactive_nodes = True
 
-Colors = {"sst"  : "blue",
-          "t2m"  : "red",
-          "msl"  : "yellow",
-          "si1" : "green"} #Keep it si1 to keep these three letters long
+Colors = {"sst"  : (0.0, 0.0, 0.8),
+          "t2m"  : (0.8, 0.0, 0.0),
+          "msl"  : (0.9, 0.9, 0.0),
+          "si1"  : (0.0, 0.8, 0.0)} #Keep it si1 to keep these three letters long
 
 def getshort(node_name):
     return node_name[7:10]
@@ -110,6 +110,7 @@ for connection in Connections:
 
     # - - - Plot Nodes - - - #
     arrows = []
+    lines = []
     for node in [node_a, node_b]:
         plt.text(node["longitude"]+text_offset[0], node["latitude"]+text_offset[1], node["display_name"], transform = ccrs.Geodetic(), zorder=10)
         plt.plot(node["longitude"], node["latitude"], color="blue", marker='o', transform = data_trans, zorder = 9)
@@ -138,12 +139,19 @@ for connection in Connections:
     arrows[-1].set_closed(False)
 
     #Plot line from node_a to node_b on top of arrow 
-    #(well... not quite on top. change color to see)
-    plt.plot([lon_a, lon_b], [lat_a, lat_b],
-            color = cause_color, linewidth=2, marker='o',
-            zorder=4,
+    #plt.plot([lon_a, lon_b], [lat_a, lat_b],
+    #        color=cause_color, 
+    #        transform=line_trans,
+    #        linewidth=2, marker='o',
+    #        zorder=4,
+    #        )
+    gradient_line([lon_a, lon_b], [lat_a, lat_b],
+            [cause_color, effect_color], 
             transform=line_trans,
+            linewidth=2, marker='',
+            zorder=4,
             )
+
 
     # - - - Plot timelag - - - #
     plt.text(0.5*(lon_a + lon_b), 0.5*(lat_a + lat_b) + 4, connection["timelag"], fontsize = 8, transform = ccrs.Geodetic(), zorder=10)
