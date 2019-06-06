@@ -1,5 +1,17 @@
-# CyberTraining2019
-CyberTraining 2019 Team 1
+Team 2 Project of the CyberTraining program at UMBC in 2019 (http://cybertraining.umbc.edu/)
+
+Title: Assessing Water Budget Sensitivity to Precipitation Forcing Errors in Potomac River Basin Using VIC Model
+
+Team members: Reetam Majumder, Jianyu Zheng, Redwan Walid
+Clients: Kel Markert, Amita Mehta, Nagaraj K. Neerchal
+Mentors: Aryya Gangopadhyay, Matthias K. Gobbert,Jianwu Wang, Zhibo Zhang
+RAs: Carlos Barajas, Pei Guo, Chamara Rajapakshe
+
+Abstract: Variable Infiltration Capacity (VIC) is an open source hydrologic model that can simulate land surface-atmosphere fluxes of moisture and energy. We used it to test the effect of precipitation uncertainties on water budget components for the Potomac river basin from April to September 2017. We deployed VIC on taki and streamlined the process of data acquisition, model estimation and inference.  Alongside estimating the water balance components for the basin, we analyzed the sensitivity of the monthly water balance components by increasing variability in input precipitation using parametric resampling methods. We were able to determine which months and which sub-basins within the Potomac were most sensitive to precipitation forcings, and propose approaches to model the precipitation data spatio-temporally.
+
+Structures of implementation:
+
+Instructions on how to run the code
 
 -------------------------01 MODIS Reprojection Bash Scripts----------------------
 
