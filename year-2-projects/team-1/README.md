@@ -1,4 +1,4 @@
-Team 2 Project of the CyberTraining program at UMBC in 2019 (http://cybertraining.umbc.edu/)
+Team 1 Project of the CyberTraining program at UMBC in 2019 (http://cybertraining.umbc.edu/)
 
 **Title**: Assessing Water Budget Sensitivity to Precipitation Forcing Errors in Potomac River Basin Using VIC Model
 
@@ -15,10 +15,10 @@ Team 2 Project of the CyberTraining program at UMBC in 2019 (http://cybertrainin
 
 -------------------------01 MODIS Reprojection Bash Scripts----------------------
 
-The bash scripts for converting HDF files of MODIS level-2 products to GeoTIFF files with WGS-84 projection by HEG. 
+The bash scripts for converting HDF files of MODIS level-2 products to GeoTIFF files with WGS-84 projection by HEG.
 Products include Land Cover (MCD12Q1-Yearly), Leaf Area Index (MCD15A2-8 days) and shortwave Albedo (MCD43A3-Daily)
 
-LAI-merge_hdf_tiff.bash: 
+LAI-merge_hdf_tiff.bash:
 Since LAI cannot be convert correctly from HEG because the file name is not match with the setups of HEG, it will generate some stripe errors which is no way to be code-based fixed. Then we directly use the stitch function of HEG to merge hdf files in different regions (will introduce them indetails in 02) to avoid the individually GeoTIFF converting. This bash script is for stitch merging and convertion directly from 4 regions to be one map projection as GeoTIFF file.
 
 Albedo_convert_tiff:
@@ -29,7 +29,7 @@ Directly convert HDF files to GeoTIFF files individually for 4 regions which con
 The Python3 scripts for averaging LAI from 8-days to monthly and SW-Albedo from daily to monthly. Noted that Land Cover product will remain yearly becasue it's the stable variable.
 
 Codes:
-tiff_average_12Q1.py: 
+tiff_average_12Q1.py:
 Rewrite Land Cover Product with the same data except taking 255 non-valid data off.
 
 tiff-average-15A2_stiched.py:
