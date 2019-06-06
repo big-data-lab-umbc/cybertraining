@@ -4,22 +4,7 @@ Python program plan.
 [X] Color gradient - See Stackexchange post
 [X] Link with main github.
 [ ] Add color legend
-[ ] Can the arrows be specified curved in someway? 
-[ ] Make easier to run on other data
-
-
-Prep:
-    Map
-        Read in map image.
-        Get size.
-
-    Nodes
-        Read in nodes.
-        Convert node locations to mapscale. (or do later?)
-        Make node dictionary
-
-    Connections
-        Read in Connections
-        Need nodeA, nodeB, variable(1, 2, 3, 4)
-
-    Filter nodes to only include those with connections. (Or don't? Leave optional)
+[ ] Can the arrows be specified curved in someway? (With gradient you could do this I think.)
+[X] Make easier to run on other data using command line args
+[X] Node colors
+[ ] How to display node names/numbers? Perhaps need numbers + a key.

@@ -1,4 +1,21 @@
+| - - - - - - - - - - - - - - - - - - - |
+| - - - READ THIS IF NOTHING ELSE - - - |
+| - - - - - - - - - - - - - - - - - - - |
+
 The main code is graphic_generation.py
+
+To run it on your_node.csv and your_connections.csv, run
+python graphic_generation.py your_node.csv your_connections.csv
+
+It will output a png and a pdf file named causal_graph_png.png and causal_graph_pdf.pdf.
+
+Let me know if you have questions / things that should change!
+
+-Steve
+
+| - - - - - - - - - - |
+| - - - DETAILS - - - |
+| - - - - - - - - - - |
 
 the makefile is provided to automatically generate the sample.pdf file, which can be displayed using evince by "make display". 
 
