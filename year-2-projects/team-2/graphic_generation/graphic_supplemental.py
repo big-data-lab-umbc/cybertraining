@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 def read_data(node_filename, connection_filename):
     #Nodes - dictionary
     #The nodes are stored in node_locations.csv, and will be stored in a dictionary
+
     Nodes = {}
+    print("Loading nodes from", node_filename)
     with open(node_filename,"r") as node_file:
         csv_reader = csv.reader(node_file)
         csv_reader.__next__()
@@ -20,6 +22,7 @@ def read_data(node_filename, connection_filename):
 
     #Connections - list
     Connections = []
+    print("Loading connections from", connection_filename)
     with open(connection_filename,"r") as node_file:
         csv_reader = csv.reader(node_file)
         csv_reader.__next__()
@@ -37,7 +40,7 @@ def read_data(node_filename, connection_filename):
     return Nodes, Connections
 
 
-def gradient_line(x_vals, y_vals, color_vals, transform, linewidth=2, marker='', zorder=4, divisions=20):
+def gradient_line(x_vals, y_vals, color_vals, transform, linewidth=2, marker='', zorder=4, divisions=100):
     """
     This method will return a *bunch* of plt.plot objects. Later we might combine into a line collection, but for now separate will do.
 
@@ -52,13 +55,8 @@ def gradient_line(x_vals, y_vals, color_vals, transform, linewidth=2, marker='',
 
     #First convert colors to np arrays, for doing arithmetic
     color_vals = list(map(lambda A : np.array(A), color_vals))
-    for i in range(len(fractions)):
-        print("f", fractions[i])
-        print("c0", color_vals[0])
-        print("c1", color_vals[1])
-        alpha = fractions[i]
-        print("cv", color_vals[0] + (color_vals[1] - color_vals[0])*alpha)
 
+    #Interpolate, then recast to tuples again.
     Colors = [color_vals[0] + (color_vals[1] - color_vals[0])*alpha for alpha in fractions]
     Colors = list(map(lambda A : tuple(A), Colors))
 
@@ -69,7 +67,6 @@ def gradient_line(x_vals, y_vals, color_vals, transform, linewidth=2, marker='',
         lat_a = Y[i]
         lat_b = Y[i+1]
         color = Colors[i]
-        print(color)
         Lines.append(
                 plt.plot([lon_a, lon_b], [lat_a, lat_b],
                 color=color, 

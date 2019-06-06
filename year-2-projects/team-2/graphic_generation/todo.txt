@@ -1,8 +1,12 @@
 Python program plan.
 
-[ ] Could use more complicated code to decide where timelag is placed: something triggy?
-[ ] Color gradient - See Stackexchange post
-[ ] Link with main github.
+[X] Could use more complicated code to decide where timelag is placed: something triggy?
+[X] Color gradient - See Stackexchange post
+[X] Link with main github.
+[ ] Add color legend
+[ ] Can the arrows be specified curved in someway? 
+[ ] Make easier to run on other data
+
 
 Prep:
     Map
@@ -19,6 +23,3 @@ Prep:
         Need nodeA, nodeB, variable(1, 2, 3, 4)
 
     Filter nodes to only include those with connections. (Or don't? Leave optional)
-
-Testing:
-    Check x 1,000,000
