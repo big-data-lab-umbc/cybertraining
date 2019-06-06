@@ -120,12 +120,7 @@ ax.gridlines(color=coast_and_grid_color)
 if color_map_background:
     ax.stock_img()
 
-# - - - Plot Nodes - - - #
-
-#Define nodes
-fl_lon, fl_lat = -80.191, 25.7616,
-ny_lon, ny_lat = -75, 43
-delhi_lon, delhi_lat = 77.23, -80 
+# - - - Plot Connections - - - #
 
 #Currently only plotting nodes involved in connections, so we iterate over connections
 for connection in Connections:
@@ -165,13 +160,13 @@ for connection in Connections:
             ))
     arrows[-1].set_closed(False)
 
-    print("before transform", lon_a, lat_a)
+    #print("before transform", lon_a, lat_a)
 
     gradient_line([lon_a, lon_b], [lat_a, lat_b],
             [cause_color, effect_color], 
-            transform=line_trans,
-            data_trans=data_trans,
-            projection=projection,
+            line_trans,
+            data_trans,
+            projection,
             straight_line=straight_line,
             linewidth=2, marker='',
             zorder=4,
