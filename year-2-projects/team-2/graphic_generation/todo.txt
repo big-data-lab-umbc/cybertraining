@@ -4,7 +4,10 @@ Python program plan.
 [X] Color gradient - See Stackexchange post
 [X] Link with main github.
 [ ] Add color legend
-[ ] Can the arrows be specified curved in someway? (With gradient you could do this I think.)
+[ ] Can the arrows be specified curved in someway? (With gradient you could do this I think.
 [X] Make easier to run on other data using command line args
 [X] Node colors
 [ ] How to display node names/numbers? Perhaps need numbers + a key.
+
+[/] Straight arrows? Maybe transform first and then interpolate. (Should work... hmm.)
+    This is straight_line set to true or false when plotting the gradient line. (Will need to adjust the arrows too though...)

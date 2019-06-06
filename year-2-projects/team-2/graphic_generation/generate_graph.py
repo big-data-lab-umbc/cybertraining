@@ -55,6 +55,7 @@ if len(args) == 3:
 show_to_user = False
 save_to_file = True
 color_map_background = False
+straight_line = False
 
 #Data Reading
 #Make True to avoid graphing nodes not involved in connections, False to graph them.
@@ -65,8 +66,14 @@ Colors = {"sst"  : (0.0, 0.0, 1.0),
           "msl"  : (0.9, 0.9, 0.0),
           "si1"  : (0.0, 0.8, 0.0)} #Keep it si1 to keep these three letters long
 
+
 def getshort(node_name):
-    return node_name[7:10]
+    for var in Colors.keys():
+        if var in node_name:
+            return var
+    return "???"
+
+Colors["???"] = (0.5, 0.5, 0.5)
 
 #Plotting
 text_offset = [2,2]
@@ -158,9 +165,14 @@ for connection in Connections:
             ))
     arrows[-1].set_closed(False)
 
+    print("before transform", lon_a, lat_a)
+
     gradient_line([lon_a, lon_b], [lat_a, lat_b],
             [cause_color, effect_color], 
             transform=line_trans,
+            data_trans=data_trans,
+            projection=projection,
+            straight_line=straight_line,
             linewidth=2, marker='',
             zorder=4,
             )
@@ -181,7 +193,7 @@ for connection in Connections:
 
 #Save to file
 if save_to_file:
-    plt.savefig(output_file_root + '_png.png', bbox_inches="tight")
+    plt.savefig(output_file_root + '_png.png', bbox_inches="tight", dpi=300)
     plt.savefig(output_file_root + '_pdf.pdf', bbox_inches="tight")
 
 #Show to user

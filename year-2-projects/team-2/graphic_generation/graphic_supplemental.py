@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
 
 def read_data(node_filename, connection_filename):
     #Nodes - dictionary
@@ -40,13 +41,17 @@ def read_data(node_filename, connection_filename):
     return Nodes, Connections
 
 
-def gradient_line(x_vals, y_vals, color_vals, transform, linewidth=2, marker='', zorder=4, divisions=100):
+def gradient_line(x_vals, y_vals, color_vals, transform, data_trans, projection, straight_line=False, linewidth=2, marker='', zorder=4, divisions=100):
     """
     This method will return a *bunch* of plt.plot objects. Later we might combine into a line collection, but for now separate will do.
 
     Make sure to use extend when incorporating the return
     """
 
+    #If doing a straight line, we transform *now*, and not later.
+    if straight_line:
+        x_vals = projection.transform_point(*x_vals, data_trans)
+        y_vals = projection.transform_point(*y_vals, data_trans)
     
     #We interpolate each element.
     fractions = [float(i)/divisions for i in range(divisions+1)]
@@ -62,17 +67,28 @@ def gradient_line(x_vals, y_vals, color_vals, transform, linewidth=2, marker='',
 
     Lines = []
     for i in range(divisions):
-        lon_a = X[i]
-        lon_b = X[i+1]
-        lat_a = Y[i]
-        lat_b = Y[i+1]
         color = Colors[i]
-        Lines.append(
-                plt.plot([lon_a, lon_b], [lat_a, lat_b],
-                color=color, 
-                transform=transform,
-                linewidth=linewidth, marker=marker,
-                zorder=zorder,
-                ))
+
+
+        lon_a = X[i]
+        lat_a = Y[i]
+        lon_b = X[i+1]
+        lat_b = Y[i+1]
+
+        if straight_line:
+            Lines.append(
+                    plt.plot([lon_a, lon_b], [lat_a, lat_b],
+                    color=color, 
+                    linewidth=linewidth, marker=marker,
+                    zorder=zorder,
+                    ))
+        else:
+            Lines.append(
+                    plt.plot([lon_a, lon_b], [lat_a, lat_b],
+                    color=color, 
+                    transform=transform,
+                    linewidth=linewidth, marker=marker,
+                    zorder=zorder,
+                    ))
 
     return Lines
