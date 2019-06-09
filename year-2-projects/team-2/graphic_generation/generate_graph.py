@@ -9,6 +9,7 @@ import pdb
 import math as math
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import cartopy.crs as ccrs
 
 #My imports
@@ -52,7 +53,7 @@ if len(args) == 3:
 
 
 #Boolean
-show_to_user = False
+show_to_user = True
 save_to_file = True
 color_map_background = False
 straight_line = False
@@ -64,8 +65,9 @@ remove_inactive_nodes = True
 Colors = {"sst"  : (0.0, 0.0, 1.0),
           "t2m"  : (0.8, 0.0, 0.0),
           "msl"  : (0.9, 0.9, 0.0),
-          "si1"  : (0.0, 0.8, 0.0)} #Keep it si1 to keep these three letters long
+          "si10"  : (0.0, 0.8, 0.0)} #Keep it si1 to keep these three letters long
 
+Used_Colors = {}
 
 def getshort(node_name):
     for var in Colors.keys():
@@ -128,8 +130,17 @@ for connection in Connections:
     node_a = Nodes[connection["cause"]]
     node_b = Nodes[connection["effect"]]
 
-    cause_color =  Colors[getshort(connection["cause"])]
-    effect_color = Colors[getshort(connection["effect"])]
+    # - - - Extract Colors, add to Color Key if needed - - - #
+    cause_color_name = getshort(connection["cause"])
+    cause_color =  Colors[cause_color_name]
+    effect_color_name = getshort(connection["effect"])
+    effect_color = Colors[effect_color_name]
+
+    if cause_color_name not in Used_Colors.keys():
+        Used_Colors[cause_color_name] = cause_color
+
+    if effect_color_name not in Used_Colors.keys():
+        Used_Colors[effect_color_name] = effect_color
 
     # - - - Plot Nodes - - - #
     arrows = []
@@ -182,6 +193,22 @@ for connection in Connections:
 
     plt.text(offset_mid_point[0], offset_mid_point[1], connection["timelag"], fontsize = 8, transform = line_trans, zorder=10)
 
+
+# - - - Legend with Colors - - - #
+
+#Build color patches
+color_patches = []
+for key, value in Used_Colors.items():
+    color_patches.append(mpatches.Patch(color=value, label=key))
+
+#Make legend
+plt.legend(handles=color_patches,
+           loc="lower left",
+           ncol=1,
+           framealpha=1.0,
+           borderaxespad=0.)
+
+    
 
 
 # - - - Display and Save - - - #
