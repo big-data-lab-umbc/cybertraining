@@ -80,7 +80,7 @@ Colors["???"] = (0.5, 0.5, 0.5)
 #Plotting
 text_offset = [2,2]
 #node_size = 4
-node_size = 10
+node_size = 16
 time_lag_offset = 4
 
 if color_map_background: 
@@ -142,8 +142,10 @@ for connection in Connections:
             Used_Colors[color_name] = color
 
         # - - - Plot Nodes - - - #
-        plt.text(node["longitude"]+text_offset[0], node["latitude"]+text_offset[1], node["display_name"], transform = ccrs.Geodetic(), zorder=10)
+        #plt.text(node["longitude"]+text_offset[0], node["latitude"]+text_offset[1], node["display_name"], transform = ccrs.Geodetic(), zorder=11)
+        plt.text(node["longitude"], node["latitude"]-1, node["display_name"], ha='center', va='center', transform = ccrs.Geodetic(), zorder=11)
         plt.plot(node["longitude"], node["latitude"], markersize=node_size, color=color, marker='o', transform = data_trans, zorder = 9)
+        plt.plot(node["longitude"], node["latitude"], markersize=node_size-2, color="white", marker='o', transform = data_trans, zorder = 10)
 
     # - - - Plot lines and Arrows - - - #
     arrows = []
@@ -186,14 +188,23 @@ for key, value in Used_Colors.items():
     color_patches.append(mpatches.Patch(color=value, label=key))
 
 #Make legend
-plt.legend(handles=color_patches,
+Legends = []
+Legends.append(plt.legend(handles=color_patches,
            loc="lower left",
            ncol=1,
            framealpha=1.0,
-           borderaxespad=0.)
+           borderaxespad=0.))
 
-    
-
+##Make second legend
+#Node_Numbers=[]
+#Legends.append(plt.legend(handles=Node_Numbers,
+#           loc="upper left",
+#           ncol=1,
+#           framealpha=1.0,
+#           borderaxespad=0.))
+#    
+#for leg in Legends[:-1]:
+#    ax.add_artist(leg)
 
 # - - - Display and Save - - - #
 
