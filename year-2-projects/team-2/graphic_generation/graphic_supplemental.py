@@ -1,4 +1,5 @@
 import csv
+from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
@@ -41,7 +42,7 @@ def read_data(node_filename, connection_filename):
     return Nodes, Connections
 
 
-def gradient_line(x_vals, y_vals, color_vals, transform, data_trans, projection, straight_line=False, linewidth=2, marker='', zorder=4, divisions=100):
+def gradient_line(x_vals, y_vals, color_vals, transform, data_trans, projection, node_size=4, straight_line=False, linewidth=2, marker='', zorder=4, divisions=100):
     """
     This method will return a *bunch* of plt.plot objects. Later we might combine into a line collection, but for now separate will do.
 
@@ -53,6 +54,47 @@ def gradient_line(x_vals, y_vals, color_vals, transform, data_trans, projection,
         x_vals = projection.transform_point(*x_vals, data_trans)
         y_vals = projection.transform_point(*y_vals, data_trans)
     
+    vector = np.array([x_vals[1] - x_vals[0], y_vals[1] - y_vals[0]])
+    vector /= sqrt(sum(x**2 for x in vector))
+
+    #Adjust vals to avoid being inside the node.
+    node_a = np.array([x_vals[0], y_vals[0]])
+    node_b = np.array([x_vals[1], y_vals[1]])
+
+    node_a += 0.5*node_size*vector
+    node_b -= 0.5*node_size*vector
+
+    x_vals = [node_a[0], node_b[0]]
+    y_vals = [node_a[1], node_b[1]]
+
+    #Plot arrow (only draw along last fraction to get correct direction)
+    alpha=0.0001
+
+    lon_a, lon_b = x_vals
+    lat_a, lat_b = y_vals
+
+    #arrows.append(plt.arrow(alpha*lon_a + (1-alpha)*lon_b, 
+    #              alpha*lat_a + (1-alpha)*lat_b, 
+    #              alpha*(lon_b-lon_a), 
+    #              alpha*(lat_b-lat_a),
+    #        linewidth=2, head_width=8, head_length=10, fc=effect_color, ec=effect_color,
+    #        length_includes_head=True,
+    #        zorder=5,
+    #        transform=transform,
+    #        ))
+    #arrows[-1].set_closed(False)
+
+    arrow = plt.arrow(alpha*lon_a + (1-alpha)*lon_b, 
+                  alpha*lat_a + (1-alpha)*lat_b, 
+                  alpha*(lon_b-lon_a), 
+                  alpha*(lat_b-lat_a),
+            linewidth=2, head_width=8, head_length=10, fc=color_vals[1], ec=color_vals[1],
+            length_includes_head=True,
+            zorder=5,
+            transform=transform,
+            )
+    arrow.set_closed(False)
+
     #We interpolate each element.
     fractions = [float(i)/divisions for i in range(divisions+1)]
     X = [x_vals[0] + (x_vals[1] - x_vals[0])*alpha for alpha in fractions]

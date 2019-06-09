@@ -79,6 +79,8 @@ Colors["???"] = (0.5, 0.5, 0.5)
 
 #Plotting
 text_offset = [2,2]
+#node_size = 4
+node_size = 10
 time_lag_offset = 4
 
 if color_map_background: 
@@ -95,7 +97,6 @@ data_trans = ccrs.PlateCarree()
 line_trans = ccrs.Geodetic()
 
 #This is the fraction of the line in (0,1) that determines the arrow direction
-arrow_fraction = 0.001
 
 # - - - Read in Node Location and Connection Data - - - #
 output_file_root = "causal_graph"
@@ -128,48 +129,30 @@ if color_map_background:
 for connection in Connections:
     #Load node dictionaries
     node_a = Nodes[connection["cause"]]
+    cause_color = Colors[getshort(connection["cause"])]
     node_b = Nodes[connection["effect"]]
+    effect_color = Colors[getshort(connection["effect"])]
 
-    # - - - Extract Colors, add to Color Key if needed - - - #
-    cause_color_name = getshort(connection["cause"])
-    cause_color =  Colors[cause_color_name]
-    effect_color_name = getshort(connection["effect"])
-    effect_color = Colors[effect_color_name]
+    for node, parity in zip([node_a, node_b], ["cause", "effect"]):
+        # - - - Extract Colors, add to Color Key if needed - - - #
+        color_name = getshort(connection[parity])
+        color =  Colors[color_name]
 
-    if cause_color_name not in Used_Colors.keys():
-        Used_Colors[cause_color_name] = cause_color
+        if color_name not in Used_Colors.keys():
+            Used_Colors[color_name] = color
 
-    if effect_color_name not in Used_Colors.keys():
-        Used_Colors[effect_color_name] = effect_color
-
-    # - - - Plot Nodes - - - #
-    arrows = []
-    lines = []
-    plt.text(node_a["longitude"]+text_offset[0], node_a["latitude"]+text_offset[1], node_a["display_name"], transform = ccrs.Geodetic(), zorder=10)
-    plt.plot(node_a["longitude"], node_a["latitude"], color=cause_color, marker='o', transform = data_trans, zorder = 9)
-
-    plt.text(node_b["longitude"]+text_offset[0], node_b["latitude"]+text_offset[1], node_b["display_name"], transform = ccrs.Geodetic(), zorder=10)
-    plt.plot(node_b["longitude"], node_b["latitude"], color=effect_color, marker='o', transform = data_trans, zorder = 9)
+        # - - - Plot Nodes - - - #
+        plt.text(node["longitude"]+text_offset[0], node["latitude"]+text_offset[1], node["display_name"], transform = ccrs.Geodetic(), zorder=10)
+        plt.plot(node["longitude"], node["latitude"], markersize=node_size, color=color, marker='o', transform = data_trans, zorder = 9)
 
     # - - - Plot lines and Arrows - - - #
+    arrows = []
+    lines = []
     lon_a = node_a["longitude"]
     lon_b = node_b["longitude"]
     lat_a = node_a["latitude"]
     lat_b = node_b["latitude"]
 
-    #Plot arrow (only draw along last fraction to get correct direction)
-    alpha=arrow_fraction
-
-    arrows.append(plt.arrow(alpha*lon_a + (1-alpha)*lon_b, 
-                  alpha*lat_a + (1-alpha)*lat_b, 
-                  alpha*(lon_b-lon_a), 
-                  alpha*(lat_b-lat_a),
-            linewidth=2, head_width=8, head_length=10, fc=effect_color, ec=effect_color,
-            length_includes_head=True,
-            zorder=5,
-            transform=line_trans,
-            ))
-    arrows[-1].set_closed(False)
 
     #print("before transform", lon_a, lat_a)
 
@@ -178,6 +161,7 @@ for connection in Connections:
             line_trans,
             data_trans,
             projection,
+            node_size=node_size,
             straight_line=straight_line,
             linewidth=2, marker='',
             zorder=4,
