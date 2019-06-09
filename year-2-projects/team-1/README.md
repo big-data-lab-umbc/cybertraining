@@ -11,11 +11,11 @@ Team 1 Project of the CyberTraining program at UMBC in 2019 (http://cybertrainin
 
 **Structures of implementation**:
 
-Step 1: Pre-processcing of VIC input data
+Step 1: Pre-processing of VIC input data
 
-Step 2: VIC simulated water balance Analysis 
+Step 2: VIC simulated water balance Analysis
 
-Step 3: Sensitivities analysis based on the perturbation of precipitation
+Step 3: Sensitivity analysis based on the perturbation of precipitation
 
 **Instructions on how to run the code**
 
@@ -71,4 +71,4 @@ Creates simulation ensembles using parametric resampling
 Evaluates the mean and SE, IQR of the water balance spatially and temporally based on inflated variance. Also generates empirical 95% CI for the mean precipitation and prints a barchart for the mean estimated water balance (with CI) for each month.
 
 perturb_plot.py:
-plotting water balance sensiticity of the preturbation of precipitaion with factors of CV and IQR.
+plotting water balance sensitivity of the perturbation of precipitation with factors of CV and IQR.
