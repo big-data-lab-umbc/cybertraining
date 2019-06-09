@@ -11,6 +11,12 @@ Team 1 Project of the CyberTraining program at UMBC in 2019 (http://cybertrainin
 
 **Structures of implementation**:
 
+Step 1: Pre-processcing of VIC input data
+
+Step 2: VIC simulated water balance Analysis 
+
+Step 3: Sensitivities analysis based on the perturbation of precipitation
+
 **Instructions on how to run the code**
 
 -------------------------01 MODIS Reprojection Bash Scripts----------------------
