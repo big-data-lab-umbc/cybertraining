@@ -53,7 +53,7 @@ if len(args) == 3:
 
 
 #Boolean
-show_to_user = True
+show_to_user = False
 save_to_file = True
 color_map_background = False
 straight_line = False
