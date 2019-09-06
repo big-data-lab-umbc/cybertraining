@@ -6,6 +6,9 @@ DUST DETECTION IN SATELLITE DATA USING CONVOLUTIONAL NEURAL NETWORKS (CNN)
 **Team members**: 
 Changjie Cai, Jangho Lee, Yingxi Rona Shi, Camille Zerfas
 
+**TA**: 
+Pei Guo
+
 **Mentors**: 
 Zhibo Zhang
 
@@ -20,10 +23,9 @@ dust detection. We describe the satellite data used, discuss the model structure
 provide results for the models built. These models show promising preliminary results.
 
 **Structures of implementation**:
-python_01_datapreprocessing:
-  01a_read_and_merge_data.py ~ 01d_read_and_merge_data.py: script files reads the raw VIIRS and CALIPSO files and extract
-  training / testing dataset with 5x5 moving window. Each of a~d scipt files reads raw data by season. 
-  02_normalize.py reads extracted data from previous script code and normalize them.
+python_01_datapreprocessing:  
+  01a_read_and_merge_data.py ~ 01d_read_and_merge_data.py: script files reads the raw VIIRS and CALIPSO files and extract training / testing dataset with 5x5 moving window. Each of a~d scipt files reads raw data by season.   
+  02_normalize.py reads extracted data from previous script code and normalize them.  
   03_count_classes.py counts the number of classes in the data.
 
 python_02_model:
