@@ -23,15 +23,15 @@ dust detection. We describe the satellite data used, discuss the model structure
 provide results for the models built. These models show promising preliminary results.
 
 **Structures of implementation**:
-python_01_datapreprocessing: <br/>  
-  01a_read_and_merge_data.py ~ 01d_read_and_merge_data.py: script files reads the raw VIIRS and CALIPSO files and extract training / testing dataset with 5x5 moving window. Each of a~d scipt files reads raw data by season. <br/>  
-  02_normalize.py reads extracted data from previous script code and normalize them. <br/> 
-  03_count_classes.py counts the number of classes in the data.
+1. python_01_datapreprocessing:    
+⋅⋅*01a_read_and_merge_data.py ~ 01d_read_and_merge_data.py: script files reads the raw VIIRS and CALIPSO files and extract training / testing dataset with 5x5 moving window. Each of a~d scipt files reads raw data by season.    
+⋅⋅*02_normalize.py reads extracted data from previous script code and normalize them.   
+⋅⋅*03_count_classes.py counts the number of classes in the data.
 
-python_02_model:
+2. python_02_model:
   Each of the script files in this directory is a CNN model.
  
- python_03_result:
+3. python_03_result:
   Scripts in this directory is used for analyzing the result of each models
   
 **Instructions on how to run the code**
