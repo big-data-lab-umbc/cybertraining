@@ -10,11 +10,15 @@ Team 4 Project of the CyberTraining program at UMBC in 2019 (http://cybertrainin
 
 **Structures of implementation**:
 
+"data_preprocessing.py" contains the code for preprocessing the data.
+
 "Deeplearning_dust_detection_march2014.ipynb" contains the deep learning model we developed based on CALIPSO data in march 2014. It also has the code for the shuffling procedure to identify the importance of features. 
 
 "Deeplearning_dust_detection_feature_selection_parallel.py" and "run_parallel.slurm" are the codes for feature selection using a genetic algorithm to select a subset of features for duct detection. 
 
 **Instructions on how to run the code**
+
+Uuser can run "data_preprocessing.py" on Taki.
 
 Users can run "Deeplearning_dust_detection_march2014.ipynb" on Jupyter notebook. 
 
