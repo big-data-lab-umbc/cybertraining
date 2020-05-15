@@ -11,7 +11,7 @@ Manzhu Yu 	(Department of Geography, Penn State University)
 Dr. Aryya Gangopadhyay (Department of Information Systems, University of Maryland  Baltimore County)
 
 **Abstract**: 
-Dust and sandstorms originating from Earth’s major arid and semi-arid desert areas can significantly affect the climate system and health. Many existing methods use heuristic rules to classify on a pixel-level regarding dust or dust-free, but these heuristic rules are limited in applicability when the study area or the study period is changed. Based on the multi-sensor collocation dataset generated from CyberTraining 2019, we sought to utilize unsupervised machine learning techniques to detect and segment dust in multispectral satellite imagery. In this report, we described the datasets used, discussed our methodology, and provided preliminary validation results.
+Dust and sandstorms originating from Earth’s major arid and semi-arid desert areas can significantly affect the climate system and health. Many existing methods use heuristic rules to classify on a pixel-level regarding dust or dust-free, but these heuristic rules are limited in applicability when the study area or the study period is changed. Based on the multi-sensor collocation dataset generated from CyberTraining 2019, we sought to utilize unsupervised machine learning techniques to detect and segment dust in multispectral satellite imagery. 
 
 **Structures of implementation**:
 
