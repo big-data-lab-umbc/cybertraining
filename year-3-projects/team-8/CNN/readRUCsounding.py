@@ -80,11 +80,4 @@ def readRUCsounding(path):
         for n in range(len(sounding_vars)):
             RUCsounding[i, 0:len(sounding), n] = sounding[sounding_vars[n]]
     
-#   RUCsounding[216,1,2]   = 
-#   RUCsounding[10777,1,2] =
-#   RUCsounding[13247,1,2] =
-#   RUCsounding[13369,1,2] =
-#   RUCsounding[16592,1,2] =
-#   RUCsounding[19250,1,2] = 
-
     return RUCdata, RUCsounding
