@@ -105,9 +105,10 @@ Instructions on how to run the code:
 
 At the stage of development seen in this snapshot of our work, our codebase
 consists of a series of separate scripts and utility modules, with no singular
-interface or main entry point. As is, script is intended to be run separately
-for the singular purpose for which it was designed. Our workflow was to design
-working prototype code to perform the needed tasks first and refactor it later.
+interface or main entry point. As is, scripts are intended to be run separately
+for the singular purposes for which they were designed. Our workflow was to
+design working prototype code to perform the needed tasks first and refactor it
+later.
 
 **For the most recent version and documentation of our software, visit [our primary GitHub repository](https://github.com/ErickShepherd/modis_caliop_anomaly_analysis):**
  * https://github.com/ErickShepherd/modis_caliop_anomaly_analysis
