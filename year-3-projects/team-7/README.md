@@ -1,6 +1,6 @@
 Team 7 Project of the CyberTraining program at UMBC in 2020 (http://cybertraining.umbc.edu/)
 
-**Title**: Multi-sensor dust detection using machine and deep learning
+**Title**: Multi-sensor dust detection using unsupervised machine learning
 
 **Team members**: 
 Julie Bessac 	(Mathematics and Computer Science Division, Argonne National Laboratory), 
