@@ -16,22 +16,23 @@ from pyresample.geometry import AreaDefinition
 from satpy import Scene  # need to install satpy library, cannot run on taki
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 from matplotlib.colors import from_levels_and_colors
-import cv2
 
 # input folders/data:
-cal_label_folder = 'I:\\cal_label\\'
-viirs_folder = 'I:\\viirs_data\\'
-input_csv = 'files_asia_spring.csv'
+project_folder = '/umbc/xfs1/cybertrn/cybertraining2020/team7/research/VIIRS-SIPS/'
+cal_label_folder = project_folder+'cal_label/'
+viirs_folder = project_folder+'viirs_data/'
+input_csv = project_folder+'files_asia_spring.csv'
 
 # output folder:
-root = 'I:\\viirs_asia\\'  # for a different spatiotemporal region, new another folder, and change to that folder
-predictor_folder = root + 'predictor\\'
-mask_folder = root + 'mask\\'
-figure_folder = root + 'figure\\'
-composite_folder = root + 'composite\\'
-full_composite = root + 'full_composite\\'
-lc_folder = root + 'landtype\\'
+root = project_folder+'subset_256/asia_spring/'  # for a different spatiotemporal region, new another folder, and change to that folder
+predictor_folder = root + 'predictor/'
+mask_folder = root + 'mask/'
+figure_folder = root + 'figure/'
+composite_folder = root + 'composite/'
+full_composite = root + 'full_composite/'
+lc_folder = root + 'landtype/'
 
 # new a folder if not exists
 for folder in [root, predictor_folder, mask_folder, figure_folder, composite_folder, full_composite, lc_folder]:
@@ -100,13 +101,13 @@ for i in range(20, df.shape[0]):
                 local_scn[available_bands[0]].shape[1] > matrix_size):
             if not path.exists(full_composite + fname[3:] + '_dust.png'):
                 local_scn.save_dataset('dust', full_composite + fname[3:] + '_dust.png')
-            composite_image = cv2.imread(full_composite + fname[3:] + '_dust.png')
+            composite_image = mpimg.imread(full_composite + fname[3:] + '_dust.png')
 
             try:
                 scn.load(['true_color_raw'])
                 local_scn = scn.resample(dst_area)
                 local_scn.save_dataset('true_color_raw', full_composite + fname[3:] + '_true_color.png')
-                tc_image = cv2.imread(full_composite + fname[3:] + '_true_color.png')
+                tc_image = mpimg.imread(full_composite + fname[3:] + '_true_color.png')
             except:
                 print('no true color')
 
@@ -203,7 +204,7 @@ for i in range(20, df.shape[0]):
                             if not path.exists(
                                     composite_folder + fname[3:] + '_' + str(mi) + '_' + str(mj) + '_dust.png'):
                                 cropped = composite_image[mi:mi + matrix_size, mj:mj + matrix_size, :]
-                                cv2.imwrite(composite_folder + fname[3:] + '_' + str(mi) + '_' + str(mj) + '_dust.png',
+                                plt.imsave(composite_folder + fname[3:] + '_' + str(mi) + '_' + str(mj) + '_dust.png',
                                             cropped)
 
                             # save true color composite image
@@ -211,5 +212,5 @@ for i in range(20, df.shape[0]):
                                 if not path.exists(composite_folder + fname[3:] + '_' + str(mi) + '_' + str(
                                         mj) + '_true_color.png'):
                                     cropped_tc = tc_image[mi:mi + matrix_size, mj:mj + matrix_size, :]
-                                    cv2.imwrite(composite_folder + fname[3:] + '_' + str(mi) + '_' + str(
+                                    plt.imsave(composite_folder + fname[3:] + '_' + str(mi) + '_' + str(
                                         mj) + '_true_color.png',cropped_tc)

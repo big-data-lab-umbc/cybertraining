@@ -17,14 +17,16 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist
 
 ################################################ Step 1: Load the data ################################################
-
-root = 'I:\\viirs_north_africa_summer\\'  # for a different spatiotemporal region, new another folder, and change to that folder
-predictor_folder = root + 'predictor\\'
-mask_folder = root + 'mask\\'
-figure_folder = root + 'figure\\'
-composite_folder = root + 'composite\\'
-full_composite = root + 'full_composite\\'
-lc_folder = root + 'landtype\\'
+# input folders/data:
+project_folder = '/umbc/xfs1/cybertrn/cybertraining2020/team7/research/VIIRS-SIPS/'
+root = project_folder+'subset_256/asia_spring/'  # for a different spatiotemporal region, new another folder, and change to that folder
+predictor_folder = root + 'predictor/'
+mask_folder = root + 'mask/'
+figure_folder = root + 'figure/'
+composite_folder = root + 'composite/'
+full_composite = root + 'full_composite/'
+lc_folder = root + 'landtype/'
+test_plot_folder = root+'test_plots/'
 
 land_types = {-1: 'N/A', 1:'Evergreen Needleleaf Forests', 2:'Evergreen Broadleaf Forests',3:'Deciduous Needleleaf Forests',
               4: 'Deciduous Broadleaf Forests', 5: 'Mixed Forests', 6:'Closed Shrublands', 7:'Open Shrublands', 8:'Woody Savannas',
@@ -199,7 +201,7 @@ ax = fig.add_subplot(111)
 bp = ax.boxplot([df['accuracy'], df['precision'], df['recall'], df['f1-score']])
 ax.set_xticklabels(['Accuracy', 'Precision', 'Recall', 'F1-score'])
 plt.title('Boxplot of accuracy metrics with '+str(df.shape[0])+' images')
-plt.show()
+plt.savefig(test_plot_folder+'boxplot_all.png')
 
 # test accuracy over the ocean/water body
 df_ocean = df[df['ocean_accuracy']!=-1]
@@ -211,7 +213,7 @@ ax = fig.add_subplot(111)
 bp = ax.boxplot([df_ocean['ocean_accuracy'], df_ocean['ocean_precision'], df_ocean['ocean_recall'], df_ocean['ocean_f1-score']])
 ax.set_xticklabels(['Accuracy', 'Precision', 'Recall', 'F1-score'])
 plt.title('Boxplot of accuracy metrics over waterbodies with '+str(df_ocean.shape[0])+' images')
-plt.show()
+plt.savefig(test_plot_folder+'boxplot_waterbody.png')
 
 # test accuracy over barren
 df_barren = df[df['barren_accuracy']!=-1]
@@ -223,7 +225,7 @@ ax = fig.add_subplot(111)
 bp = ax.boxplot([df_barren['barren_accuracy'], df_barren['barren_precision'], df_barren['barren_recall'], df_barren['barren_f1-score']])
 ax.set_xticklabels(['Accuracy', 'Precision', 'Recall', 'F1-score'])
 plt.title('Boxplot of accuracy metrics over barren with '+str(df_barren.shape[0])+' images')
-plt.show()
+plt.savefig(test_plot_folder+'boxplot_barren.png')
 
 # test accuracy over other surface types
 df_other = df[df['other_accuracy']!=-1]
@@ -235,4 +237,4 @@ ax = fig.add_subplot(111)
 bp = ax.boxplot([df_other['other_accuracy'], df_other['other_precision'], df_other['other_recall'], df_other['other_f1-score']])
 ax.set_xticklabels(['Accuracy', 'Precision', 'Recall', 'F1-score'])
 plt.title('Boxplot of accuracy metrics over other surface types with '+str(df_other.shape[0])+' images')
-plt.show()
+plt.savefig(test_plot_folder+'boxplot_other_surface_types.png')

@@ -9,9 +9,9 @@ Output:
 
 import math
 import pandas as pd
-from os import listdir
+from os import listdir, path, mkdir
 import numpy as np
-import cv2
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist, pdist
 from sklearn.cluster import KMeans
@@ -20,13 +20,20 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.metrics import confusion_matrix
 from matplotlib.colors import from_levels_and_colors
 
-root = 'I:\\viirs_north_africa_summer\\'
-predictor_folder = root + 'predictor\\'
-mask_folder = root + 'mask\\'
-figure_folder = root + 'figure\\'
-composite_folder = root + 'composite\\'
-full_composite = root + 'full_composite\\'
-lc_folder = root + 'landtype\\'
+# input folders/data:
+project_folder = '/umbc/xfs1/cybertrn/cybertraining2020/team7/research/VIIRS-SIPS/'
+root = project_folder+'subset_256/asia_spring/'  # for a different spatiotemporal region, new another folder, and change to that folder
+predictor_folder = root + 'predictor/'
+mask_folder = root + 'mask/'
+figure_folder = root + 'figure/'
+composite_folder = root + 'composite/'
+full_composite = root + 'full_composite/'
+lc_folder = root + 'landtype/'
+
+# output folder:
+test_plot_folder = root+'test_plots/'
+if not path.exists(test_plot_folder):
+    mkdir(test_plot_folder)
 
 land_types = {-1: 'N/A', 0:'N/A', 1:'Evergreen Needleleaf Forests', 2:'Evergreen Broadleaf Forests',3:'Deciduous Needleleaf Forests',
               4: 'Deciduous Broadleaf Forests', 5: 'Mixed Forests', 6:'Closed Shrublands', 7:'Open Shrublands', 8:'Woody Savannas',
@@ -41,7 +48,7 @@ def plot_segmentation(labels_image, title):
     im = plt.imshow(labels_image, cmap=cmap, vmin=np.min(labels_image) - .5, vmax=np.max(labels_image) + .5)
     cax = plt.colorbar(im, ticks=np.arange(np.min(labels_image), np.max(labels_image) + 1), fraction=0.05, pad=0.05)
     plt.title(title), plt.xticks([]), plt.yticks([])
-    plt.show()
+    plt.savefig(test_plot_folder+fname+'_segmentation.png')
 
 def plot_img(img, title):
     plt.figure(figsize=(figure_size,figure_size))
@@ -55,7 +62,7 @@ def plot_dust(plot_label, title):
     plt.imshow(plot_label, cmap=cmap, norm=norm)
     plt.colorbar(ticks=np.arange(-1, 6))
     plt.title(title), plt.xticks([]), plt.yticks([])
-    plt.show()
+    plt.savefig(test_plot_folder+fname+'_'+title+'.png')
 
 def plot_lc(landtype):
     plt.figure()
@@ -68,14 +75,9 @@ def plot_lc(landtype):
     cbar = plt.colorbar(im, ticks=ticks, fraction=0.05, pad=0.05)
     cbar.ax.set_yticklabels([land_types[i] for i in ticks])
     plt.title('landtype'), plt.xticks([]), plt.yticks([])
-    plt.show()
+    plt.savefig(test_plot_folder+fname+'_landtype.png')
 
 def dust_predictors():
-    # df = pd.read_csv(root + 'records.csv', header=None, index_col=False)
-    # df = df[df[1] >= 100]
-    # fnames = df[0].values
-    # fnames = [file+'.npy' for file in fnames]
-
     fnames = [file for file in listdir(predictor_folder)]
 
     aggr_predictor = []
@@ -104,56 +106,31 @@ def dust_predictors():
     return aggr_predictor[aggr_mask == 1]
 
 # African dust
-# fname = '2014152t0936_256_0'     # good with pure dust (pure dust only)
-# fname = '2014152t1112_1024_256'  # good with categories 1 and 3
-fname = '2014152t1254_1536_256'
-#fname = '2014152t1436_1024_256'
-#fname = '2014152t1436_1280_256'
-#fname = '2014152t1436_1536_256'
+# fname = '2014152t0936_256_0', '2014152t1112_1024_256', '2014152t1254_1536_256', '2014152t1436_1024_256', '2014152t1436_1280_256', '2014152t1436_1536_256'
 
 # North Atlantic
-# fname = '2014187t0548_2304_0'
-# fname = '2014360t0324_1792_0'
-# fname = '2014245t1536_1024_256'
-# fname = '2014211t0500_2048_0'
-# fname = '2014229t1718_1536_256'
-# fname = '2014275t0500_2304_0'
-# fname = '2014240t1530_768_0'
-# fname = '2014240t1530_1024_256'
-# fname = '2014234t1724_512_0'
+# fname = '2014187t0548_2304_0','2014360t0324_1792_0', '2014245t1536_1024_256', '2014211t0500_2048_0',
+# '2014229t1718_1536_256','2014275t0500_2304_0', '2014240t1530_768_0', '2014240t1530_1024_256', '2014234t1724_512_0'
 
 # Asian dust
-# fname = '2014136t0430_256_0'
-    #'2014136t0430_256_0'
-    #'2014136t0430_1536_256'
-    #'2014131t0606_1280_256'
-    #'2014072t1830_1280_256'
-    #'2014072t1830_1536_256'
-    #'2014072t1830_1792_0'
-    #'2014147t0606_256_0'
+#'2014136t0430_256_0','2014136t0430_1536_256','2014131t0606_1280_256','2014072t1830_1280_256','2014072t1830_1536_256'
+#'2014072t1830_1792_0','2014147t0606_256_0'
+fname = '2014147t0606_256_0'
 
 # load viirs all bands
 predictor_file = predictor_folder+fname+'.npy'
 predictor = np.load(predictor_file)
 predictor[np.isnan(predictor)] = 0
-# print(predictor.shape)
 predictor = predictor[:,:,:16]
 
 # load calipso dust mask
 mask_file = mask_folder+fname+'.npy'
 mask = np.transpose(np.load(mask_file))
-# print(mask.shape)
 
 # Surface type
 land_file = lc_folder + fname + '.npy'
 land = np.transpose(np.load(land_file))
 print([land_types[type] for type in np.unique(land)])
-
-# load dust composite image
-img_file = composite_folder+fname+'_dust.png'
-print(img_file)
-original_image = cv2.imread(img_file)
-img = cv2.cvtColor(original_image,cv2.COLOR_BGR2RGB)
 
 vectorized = predictor.reshape((-1,predictor.shape[2]))
 vectorized = np.float32(vectorized)
@@ -170,13 +147,7 @@ labels_image = labels.reshape(predictor.shape[0:2])
 centroids = model.cluster_centers_
 print(labels_image.shape)
 
-plot_img(img,'Dust composite')
 plot_segmentation(labels_image, 'Segmentation with K='+str(K))
-
-# Assuming that the majority cluster on the mask track is the pure dust class
-# counts = np.bincount(plot_label[mask == 1])
-# dust_label = np.argmax(counts)
-# # print(dust_label)
 
 # improve cluster determination based on dust predictors
 dust_profiles = dust_predictors()
@@ -202,8 +173,8 @@ if len(potentials) > 0:
 # plot of clusters along track
 plot_label = labels_image.copy().astype('Int32')
 plot_label[mask < 0] = -1
-plot_dust(plot_label, "Kmeans clusters along track")
-plot_dust(mask, "Dust mask along track")
+plot_dust(plot_label, "Kmeans_clusters_along_track")
+plot_dust(mask, "Dust_mask_along_track")
 plot_lc(land)
 
 y_pred = plot_label[mask >= 0]
@@ -236,4 +207,4 @@ dust[dust == dust_label] = 100
 dust[dust == -100] = 0
 dust[dust == 100] = 1
 
-plot_dust(dust, "Dust extent")
+plot_dust(dust, "Dust_extent")
