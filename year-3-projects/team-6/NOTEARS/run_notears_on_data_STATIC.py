@@ -25,8 +25,7 @@ for file in file_names:
     #lambda1 used in example provided by authors is 0.1
     #default w_threshold=0.3
 
-
-    for lambda1 in [0]:
+    for lambda1 in [0.1]:
         for w_threshold in [0.3]:
         
             W_est = notearsORIGINAL.notears_linear_l1(X.copy(), lambda1=lambda1, loss_type='l2',w_threshold=w_threshold)
