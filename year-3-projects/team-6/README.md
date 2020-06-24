@@ -16,4 +16,6 @@ Team 6 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 
 ###### NOTEARS
 
+In order to run the code, you need to download the NOTEARS code from https://github.com/xunzheng/notears. We used Version 2.1 of the NOTEARS code.
+
 ###### DAG-GNN
