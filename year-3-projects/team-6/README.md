@@ -18,4 +18,6 @@ Team 6 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 
 In order to run the code, you need to download the NOTEARS code from https://github.com/xunzheng/notears. We used Version 2.1 of the NOTEARS code.
 
+Then just run run_notears_on_data_STATIC.py or run_notears_on_data_TEMPORAL.py. 
+
 ###### DAG-GNN
