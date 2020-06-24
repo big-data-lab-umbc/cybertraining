@@ -56,10 +56,6 @@ if distance_function=='HD':
 
 
 
-
-
-
-
 def reduced_graph(adja_mat,file):
 
     df = pandas.read_csv('/umbc/xfs1/cybertrn/cybertraining2020/team6/research/data/lagged_data_May_12/'+'lagged_'+file+'.csv', delimiter=',',header=0)
@@ -97,7 +93,6 @@ def reduced_graph(adja_mat,file):
 
 
 
- 
        
 #Order of variables
 #['HFLX','SW','LW','SLP','Precip','RH','u10m','v10m','sea_ice','CC','CW','GH']
@@ -212,8 +207,6 @@ for file in file_names:
 
 
 
-
-
     #Static vs Temporal                                                                                                                         
     iter_A=0
     for lambda1_A in lambda_range:
@@ -247,12 +240,15 @@ for file in file_names:
 
 
 
-
     print(plotname)
     print(dmat)
     print(dmat_TEMPORAL)
     print(dmat_STATIC_vs_TEMPORAL)
+
     
+    
+    
+    #Produce table for report
     if distance_function=='SHD':
         digits_to_round=0
     else:
