@@ -12,8 +12,8 @@ Team 6 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 
 **Instructions on how to run the code**:
 
-##### TCDF
+###### TCDF
 
-##### NOTEARS
+###### NOTEARS
 
-##### DAG-GNN
+###### DAG-GNN
