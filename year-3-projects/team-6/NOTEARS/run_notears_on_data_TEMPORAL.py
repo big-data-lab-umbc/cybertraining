@@ -2,7 +2,7 @@ import numpy as np
 import pandas
 import sys
 sys.path.append('/umbc/xfs1/cybertrn/cybertraining2020/team6/research/code_Matt/notears-2.1/src')
-import notearsORIGINAL, utils
+import notears, utils
 from plot_graph import *
 import matplotlib.pyplot as plt
 
@@ -37,7 +37,7 @@ for file in file_names:
     for lambda1 in [0.1]:
         for w_threshold in [0.3]:
             
-            W_est = notearsORIGINAL.notears_linear_l1(X.copy(), lambda1=lambda1, loss_type='l2',w_threshold=w_threshold)
+            W_est = notears.notears_linear_l1(X.copy(), lambda1=lambda1, loss_type='l2',w_threshold=w_threshold)
             if not  utils.is_dag(W_est):
                 plotname_add='!!!NODAG!!!'
             else:
