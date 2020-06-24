@@ -2,7 +2,8 @@ import numpy as np
 
 
 def count_accuracy(B_true, B):
-    """Compute FDR, TPR, and FPR for B
+    """
+    Code based on the DAG-GNN code
 
     Args:
         B_true: ground truth graph
