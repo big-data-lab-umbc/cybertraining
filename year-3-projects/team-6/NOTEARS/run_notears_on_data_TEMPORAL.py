@@ -31,11 +31,12 @@ for file in file_names:
     plotname_REDUCED="TemporalModel*REDUCED*__"+file
 
 
-
+    #lambda1 used in example provided by authors is 0.1
+    #default w_threshold=0.3
+  
     for lambda1 in [0.1]:
         for w_threshold in [0.3]:
             
-            '''
             W_est = notearsORIGINAL.notears_linear_l1(X.copy(), lambda1=lambda1, loss_type='l2',w_threshold=w_threshold)
             if not  utils.is_dag(W_est):
                 plotname_add='!!!NODAG!!!'
@@ -43,12 +44,8 @@ for file in file_names:
                 plotname_add=''
             
             np.savetxt('AdjMatrix_'+plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.csv', W_est, delimiter=',')
-            '''
-
-            plotname_add=''
-            W_est=np.loadtxt('AdjMatrix_'+plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.csv',delimiter=',')
-
-
+            
+            
             visualize_temporal(np.around(W_est,2),feature_names=feature_names,full_feature_names=full_feature_names,lag_range=lag_range,
                        all_variable_names=all_variable_names,plotname=plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.pdf')
             visualize_reduced_graph(np.around(W_est,2),feature_names=feature_names,full_feature_names=full_feature_names,lag_range=lag_range,
