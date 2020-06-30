@@ -1,10 +1,12 @@
 import numpy as np
 import pandas
+import matplotlib.pyplot as plt
 import sys
 sys.path.append('/umbc/xfs1/cybertrn/cybertraining2020/team6/research/code_Matt/notears-2.1/src')
+sys.path.append('/umbc/xfs1/cybertrn/cybertraining2020/team6/research/code_postprocessing')
 import notears, utils
-from plot_graph import *
-import matplotlib.pyplot as plt
+import plot_graph
+
 
 
 
@@ -35,6 +37,4 @@ for file in file_names:
                 plotname_add=''
 
             np.savetxt('AdjMatrix_'+plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.csv', W_est, delimiter=',')
-            visualize_static(np.around(W_est,2),feature_names=feature_names,plotname=plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.pdf')
-
-
+            plot_graph.visualize_static(np.around(W_est,2),feature_names=feature_names,plotname=plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.pdf')
