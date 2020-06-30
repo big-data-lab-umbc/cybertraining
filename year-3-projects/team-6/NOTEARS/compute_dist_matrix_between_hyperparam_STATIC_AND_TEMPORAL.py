@@ -1,7 +1,6 @@
 import numpy as np
 import pandas
 import os.path
-from compute_SHD import count_accuracy
 from scipy.spatial.distance import hamming
 
 distance_function='l1'
@@ -30,15 +29,6 @@ if distance_function=='l1':
     
     def dist_between_matrices(A,B):
         return np.sum(np.abs(A-B))
-
-
-if distance_function=='SHD':
-
-    def dist_between_matrices(A,B):
-        
-        _, _, _, shd, _ =count_accuracy(A,B)
-
-        return shd
 
 
 if distance_function=='HD':
