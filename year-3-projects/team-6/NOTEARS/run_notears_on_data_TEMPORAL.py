@@ -1,10 +1,12 @@
 import numpy as np
 import pandas
+import matplotlib.pyplot as plt
 import sys
 sys.path.append('/umbc/xfs1/cybertrn/cybertraining2020/team6/research/code_Matt/notears-2.1/src')
+sys.path.append('/umbc/xfs1/cybertrn/cybertraining2020/team6/research/code_postprocessing')
 import notears, utils
-from plot_graph import *
-import matplotlib.pyplot as plt
+import plot_graph
+
 
 
 
@@ -46,8 +48,7 @@ for file in file_names:
             np.savetxt('AdjMatrix_'+plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.csv', W_est, delimiter=',')
             
             
-            visualize_temporal(np.around(W_est,2),feature_names=feature_names,full_feature_names=full_feature_names,lag_range=lag_range,
+            plot_graph.visualize_temporal(np.around(W_est,2),feature_names=feature_names,full_feature_names=full_feature_names,lag_range=lag_range,
                        all_variable_names=all_variable_names,plotname=plotname+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.pdf')
-            visualize_reduced_graph(np.around(W_est,2),feature_names=feature_names,full_feature_names=full_feature_names,lag_range=lag_range,
+            plot_graph.visualize_reduced_graph(np.around(W_est,2),feature_names=feature_names,full_feature_names=full_feature_names,lag_range=lag_range,
                             all_variable_names=all_variable_names,plotname=plotname_REDUCED+'_lambda1='+str(lambda1)+'_Wthresh='+str(w_threshold)+plotname_add+'.pdf')
-
