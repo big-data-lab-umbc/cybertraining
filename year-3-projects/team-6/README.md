@@ -12,6 +12,7 @@ Team 6 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 
 **Instructions on how to run the code**:
 
+For plotting NOTEARS and DAG-GNN graphs, you need the [igraph](https://igraph.org/python/) package.
 ###### TCDF
 
 ###### NOTEARS
@@ -28,3 +29,32 @@ run_notears_on_data_TEMPORAL.py
 ```
 
 ###### DAG-GNN
+
+Copy the `src` folder from [this link](https://github.com/big-data-lab-umbc/DAG-GNN) and place it inside the DAG-GNN folder here. Then put the detrended and deaseasonalized datasets inside the `data` folder in csv format. Your DAG-GNN folder structure should look like this -
+* DAG-GNN
+  * data
+    * file1.csv
+    * file2.csv
+    * .
+    * .
+  * plots
+    * plot_graph.py
+    * plotGNN.py
+  * src
+    * train.py
+    * utils.py
+    * modules.py
+
+To run DAG-GNN, just run the following command from inside the `src` folder
+```
+python train.py --filename=file1.csv --epochs=50 
+```
+Your DAG will be generated at this location: `src/<filename>__epochs<no. of epochs>/predG`. For example, for the command above, your DAG will be a file called "predG" generated in `src/file1__epochs50/`.
+
+Further, DAG-GNN can be customized with a whole list of arguments, but the `filename` argument is compulsory. If the number of epochs is not defined, then its default value will be considered, which is 200.
+
+To plot the graphs, simply run the following command from inside the `plots` folder
+```
+python plotGNN.py 
+```
+Each graph will be generated in the folder containing the corresponding "predG".
