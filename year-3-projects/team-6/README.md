@@ -45,16 +45,16 @@ Copy the `src` folder from [this link](https://github.com/big-data-lab-umbc/DAG-
     * utils.py
     * modules.py
 
-To run DAG-GNN, just run
+To run DAG-GNN, just run the following command from inside the `src` folder
 ```
-python src/train.py --filename=file1.csv --epochs=50 
+python train.py --filename=file1.csv --epochs=50 
 ```
 Your DAG will be generated at this location: `src/<filename>__epochs<no. of epochs>/predG`. For example, for the command above, your DAG will be a file called "predG" generated in `src/file1__epochs50/`.
 
 Further, DAG-GNN can be customized with a whole list of arguments, but the `filename` argument is compulsory. If the number of epochs is not defined, then its default value will be considered, which is 200.
 
-To plot the graphs, simply run
+To plot the graphs, simply run the following command from inside the `plots` folder
 ```
-python plots/plotGNN.py 
+python plotGNN.py 
 ```
 Each graph will be generated in the folder containing the corresponding "predG".
