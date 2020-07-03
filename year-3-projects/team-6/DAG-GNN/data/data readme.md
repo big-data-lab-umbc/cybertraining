@@ -1,1 +1,0 @@
-Put your detrended and deseasonalized datasets (in a csv format) here, in this folder
