@@ -54,6 +54,7 @@ which can (manually) converted to a numpy adjacency matrix
  [0,0,0,0,0,0,0,0,0,0,0,0]])
 ```
 where the going from left to right or up to down is `['HFLX','SW','LW','SLP','Precip','RH','u10m','v10m','sea_ice','CC','CW','GH']`, which are aliases for atmospheric and sea ice variables (this is also used by NOTEARS and DAG-GNN)
+
 * longwave: LW
 * shortwave: SW
 * tot_precip: Precip
@@ -66,6 +67,7 @@ where the going from left to right or up to down is `['HFLX','SW','LW','SLP','Pr
 * cloud_cover: CC
 * cloud_water: CW
 * heat_flux: HFLX
+
 now we can plot the data (though you have to manually adjust the numpy matrices in the code)
 ```
 python plot_graph_for_TCDF.py
