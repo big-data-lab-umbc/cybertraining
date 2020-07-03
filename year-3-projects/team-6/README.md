@@ -12,6 +12,7 @@ Team 6 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 
 **Instructions on how to run the code**:
 
+For plotting NOTEARS and DAG-GNN graphs, you need the [igraph](https://igraph.org/python/) package.
 ###### TCDF
 
 ###### NOTEARS
