@@ -30,7 +30,7 @@ run_notears_on_data_TEMPORAL.py
 
 ###### DAG-GNN
 
-Copy the `src` folder from [this link](https://github.com/big-data-lab-umbc/DAG-GNN) and place it inside the DAG-GNN folder here. Then put the detrended & deaseasonalized datasets inside the `data` folder in csv format. Your DAG-GNN folder structure should look like this -
+Copy the `src` folder from [this link](https://github.com/big-data-lab-umbc/DAG-GNN) and place it inside the DAG-GNN folder here. Then put the detrended and deaseasonalized datasets inside the `data` folder in csv format. Your DAG-GNN folder structure should look like this -
 * DAG-GNN
   * data
     * file1.csv
