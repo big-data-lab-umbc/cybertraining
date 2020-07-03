@@ -26,7 +26,7 @@ then you can run the TCDF code
 ```
 python runTCDF.py --data report_data/combined_decomposed_drop_temp_all_norm_1980_2018.csv --kernel_size k# --hidden_layers h#
 ```
-where `report_data/combined_...` is the same csv data used for the NOTEARS and DAG_GNN code. Note: `k#` and `h#` are used for the hyperparameter sensitivity study where for this project we used `k# = {2,4,6}` and `h# = {0,1,2}`. Note: replace `k#` and `h#` with numeric interger values.
+where `report_data/combined_...` is the same csv data used for the NOTEARS and DAG_GNN code. Note: `k#` and `h#` are used for the hyperparameter sensitivity study where for this project we used `k# = {2,4,6}` and `h# = {0,1,2}`. Note: replace `k#` and `h#` with numeric integer values.
 
 After you run the TCDF code you will get a text display, e.g.
 ```
@@ -71,6 +71,10 @@ where the going from left to right or up to down is `['HFLX','SW','LW','SLP','Pr
 now we can plot the data (though you have to manually adjust the numpy matrices in the code)
 ```
 python plot_graph_for_TCDF.py
+```
+and for the hyperparameter sensitivity study (make sure to manually adjust the matrices here too)
+```
+python compute_normHamming_for_TCDF.py
 ```
 
 ###### NOTEARS
