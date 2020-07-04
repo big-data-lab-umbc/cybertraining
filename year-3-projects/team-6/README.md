@@ -1,6 +1,6 @@
-Team 6 Project of the CyberTraining program at UMBC in 2020 (http://cybertraining.umbc.edu/)
+Team 6 Project of the CyberTraining program at UMBC in 2020 (http://cybertraining.umbc.edu/). Technical report and presentation of this project can be found at the CyberTraining website. 
 
-**Title**: Studying Arctic Sea Ice Retreat Using Data-Driven Causality Discovery Approaches
+**Title**: Benchmarking of Data-Driven Causality Discovery Approaches in the Interactions of Arctic Sea Ice and Atmosphere
 
 **Team members**: Yiyi Huang, Matthäus Kleindessner, Alexey Munishkin, Debvrat Varshney
 
