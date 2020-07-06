@@ -21,11 +21,11 @@ full_feature_names = list(df.columns)
 df = pd.read_csv("../data/" + temporal_file + ".csv")
 all_variable_names = list(df.columns)
 
-static_root = os.path.join('../src/param-tuning2/')
+static_root = os.path.join('../src/')
 folder_list = os.listdir(static_root)
 
 for folder in folder_list:
-    if ('.py' in folder) or ('__pycache__' in folder):
+    if not os.path.isdir(folder):
         continue
     os.chdir(os.path.join(static_root,folder))
 
