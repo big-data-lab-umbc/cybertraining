@@ -21,7 +21,8 @@ Team 8 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 10. RandomForest/interpolate_avg_height.py: converts data with varying height levels into data with a fixed height grid comprised of the average heights at each of the 37 levels and interploates feature values over the fixed height grid
 11. RandomForest/RF_oversample.py: creates and tests a Random Forest model that handles imbalance datasets issue using oversampling approach
 12. RandomForest/RF_undersample.py: creates and tests a Random Forest model that handles imbalance datasets issue using undersampling approach
+13. RandomForest/read_data_RF.py: uses to read in RUC sounding data for Random Forest models
 
 **Instructions on how to run the code**
 All codes able to run on taki
-Code location: /umbc/xfs1/cybertrn/cybertraining2020/team8/research
+Code location: /umbc/xfs1/cybertrn/cybertraining2020/team8/research/Tornado_Code/
