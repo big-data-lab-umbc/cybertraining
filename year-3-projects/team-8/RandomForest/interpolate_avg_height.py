@@ -4,6 +4,8 @@ Created on FUCdata_interp = np.empty([RUCdata.shape[0],zlength_features])
 
 @author: mkubacki
 
+Usage:  For use in RF_model.py
+
 This function converts the pandas dataframe with varying height levels into
 a pandas dataframe with a fixed height grid comprised of the average heights
 at each of the 37 levels.  Feature values are interpolated
