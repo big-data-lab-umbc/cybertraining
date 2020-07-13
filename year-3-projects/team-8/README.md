@@ -19,8 +19,8 @@ Team 8 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 8. CNN/readRUCsounding.py: uses to read in RUC sounding and returns a dictionary of metadata and an 3D array of sounding data, structured as a 20194x37x7 numpy array
 9. RandomForest/RF_model.py: creates, trains, and tests a Random Forest classifier for the RUC sounding data for supercell storms that has been interpolated over 37 fixed heights
 10. RandomForest/interpolate_avg_height.py: converts data with varying height levels into data with a fixed height grid comprised of the average heights at each of the 37 levels and interploates feature values over the fixed height grid
-11. RandomForest/RF_oversample.py: creates and tests a Random Forest model and handles imbalance datasets issue using oversampling approach
-12. RandomForest/RF_undersample.py: creates and tests a Random Forest model and handles imbalance datasets issue using undersampling approach
+11. RandomForest/RF_oversample.py: creates and tests a Random Forest model that handles imbalance datasets issue using oversampling approach
+12. RandomForest/RF_undersample.py: creates and tests a Random Forest model that handles imbalance datasets issue using undersampling approach
 
 **Instructions on how to run the code**
 All codes able to run on taki
