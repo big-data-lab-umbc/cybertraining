@@ -1,4 +1,4 @@
-Team x Project of the CyberTraining program at UMBC in 2020 (http://cybertraining.umbc.edu/)
+Team 3 Project of the CyberTraining program at UMBC in 2020 (http://cybertraining.umbc.edu/)
 
 **Title**: Evaluation of tropical cloud simulations between CMIP6 models and satellite observations
 
