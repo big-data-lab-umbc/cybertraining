@@ -1,6 +1,7 @@
 Owing to the volume of dataset, the analysis for this project has conducted on Jupyter notebooks in taki. To connect Jupyter notebook to your taki environment, please following the below-mentioned steps:
 
-Step1: Connect to taki through terminal using your credentials,
+Step1: Connect to taki through terminal using your credentials
+
 Step 2: In your taki user-space, type the following command:
 
   jupyter notebook --no-browser --port=8889
