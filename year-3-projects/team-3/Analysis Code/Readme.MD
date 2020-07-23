@@ -7,6 +7,7 @@ Step 2: In your taki user-space, type the following command:
   jupyter notebook --no-browser --port=8889
 
 Running this, will prompt a localhost url similar to one below:
+
   http://localhost:8889/?token=cfccfc7e16af59f0d23be71bff7f729a91fcf5172672d3f3
 
 Step3: In another terminal on your local machine, type the following with your taki username inplace of 'sali9':
