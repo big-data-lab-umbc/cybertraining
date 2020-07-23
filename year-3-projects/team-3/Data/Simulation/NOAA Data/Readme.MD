@@ -5,7 +5,7 @@
   - ExperimentID: amip
   - Variant Label: r1i1p1f1
   - Frequency: mon
-  - Variable: cllcalipso, clmcalipso, clhcalipso, cltcalipso
+  - Variable: cllcalipso, clmcalipso, clhcalipso, cltcalipso, rsut, rsdt, rsutcs
 3. Press Search
 4. Download 'wget script' against each of the datasets returned. 
 5. Upload the script to taki workspace where data needs to be downloaded.
