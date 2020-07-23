@@ -1,6 +1,6 @@
 Team 3 Project of the CyberTraining program at UMBC in 2020 (http://cybertraining.umbc.edu/)
 
-**Title**: Evaluation of tropical cloud simulations between CMIP6 models and satellite observations
+**Title**: Evaluation of Tropical Cloud Simulations between CMIP6 Models and Satellite Observations
 
 **Team members**: Achala W. Denagamage, Neranga Hannadige, Sahara Ali, Xin Huang
 
