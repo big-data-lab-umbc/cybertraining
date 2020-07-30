@@ -1,3 +1,9 @@
+1. CESM, GISS and NOAA data reading and plotting - Uncoupled: This notebook comprises of three uncoupled models (CESM2, NASA-GISS and NOAA-GFDL) analysis of cloud fraction bias and shortwave radiative flux and their comparison with actual satellite observations from GOCCP-CALIPSO and CERES. Observational and Amip (uncoupled) data for all mentioned models, for the analysis, is loaded and accessed from taki. Detailed instructions for downloading the data from their source/hosts can be found in the 'Data' section of team-3's github project. 
+
+2. CESM and NOAA data reading and plotting - Coupled: This notebook comprises of two coupled models (CESM2 and NOAA-GFDL) analysis of cloud fraction bias and shortwave radiative flux and their comparison with actual satellite observations from GOCCP-CALIPSO and CERES. Observational and Historical (coupled) data for all mentioned models, for the analysis, is loaded and accessed from taki. 
+
+3. Coupled vs Uncoupled Plot: This notebook illustrates a graphical/pictorial comparison of Cloud fraction bias and Shortwave radiative flux between actual observations, coupled and uncoupled models.
+
 Owing to the volume of dataset, the analysis for this project has conducted on Jupyter notebooks in taki. To connect Jupyter notebook to your taki environment, please following the below-mentioned steps:
 
 Step1: Connect to taki through terminal using your credentials
