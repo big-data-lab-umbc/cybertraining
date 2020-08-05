@@ -11,5 +11,5 @@
 5. Upload the script to taki workspace where data needs to be downloaded.
 6. A downloaded version of the script has been placed for you. 
 6. Run the script using the following command:
-    wget-XXXXXX -s
+    ./wget.sh
 7. You can refer to the FAQs for more assistance: https://esgf.github.io/esgf-user-support/faq.html#error-http-request-to-openid-relying-party-service-failed
