@@ -1,0 +1,176 @@
+#!/bin/csh 
+# Example script for running SHDOM on multiple processors of an SMP 
+# machine.  The input is a 160x160x25 ascii liquid water content file. 
+# An SHDOM property file is made from the LWC file and a Mie scattering 
+# table using propgen.  Then SHDOM is run at a low angular resolution to 
+# obtain optimum memory parameters for each processor subdomain for the 
+# high angular resolution run.  The high resolution SHDOM run outputs 
+# radiances at 0.86 um in the solar (principal) plane. 
+# Warning: The SHDOM calculations are CPU intensive (about 8 minutes 
+# for the low resolution run and 80 minutes for the high resolution run 
+# on eight 3.0 GHz Intel Xeon processors).
+
+  # Run the three sections in order:
+  #   (set flag to 1, run script, check that output files were made)
+set MakeMieTable=0
+set MakePropertyFile=0
+set RunSHDOM=0
+
+set wavelen = 0.86   # wavelength (micron)
+set Zref = 4.0       # top of domain, where radiances are calculated
+
+  # Set filenames based on the LWC file name:
+set basename="era0621nh12_t21"
+set lwcfile = ${basename}.lwc
+set scattable=water_w${wavelen}.scat
+set outbase = ${basename}w${wavelen}
+set prpfile = ${outbase}.prp
+
+
+
+if ($MakeMieTable) then
+  # Makes the Mie scattering table for spherical water droplets for
+  # gamma size distributions with a range of effective radius. 
+
+  set distflag=G                   # G=gamma, L=lognormal size distribution
+  set alpha = 7                    # gamma dist shape parameter
+  set Nretab=60                    # number of effective radius in table
+  set Sretab=0.5; set Eretab=30    # starting, ending effective radius (micron)
+  set maxradius=75                 # maximum radius in distribution (micron)
+  set partype = "W"                # W for water
+  set avgflag=C                    #  C for using central wavelength
+
+  put "$wavelen $wavelen" $partype $avgflag $distflag $alpha \
+     "$Nretab $Sretab $Eretab" $maxradius $scattable | make_mie_table
+endif
+
+
+
+
+if ($MakePropertyFile) then
+  # Make the property file from the 2 parameter ascii LWC file using propgen.
+
+    # Make the other Z levels:    
+  cat $lwcfile | awk -v dzlow=0.100  -v dzhi=0.500  -v dzbound=0.040 \
+              -v Zmax=$Zref  -v Tmin=205 -v Tlapselow=10.0  -v Tlapsehi=6.5 \
+     '{if (NR==4) {z1=$1; z2=$NF;} if (NR==5) {T1=$1; T2=$NF;} }\
+      END {nb=int((z1-2*dzbound)/dzlow)+1; \
+       for (i=1; i<=nb; i++) \
+         {z[i]=(i-1)*dzlow; T[i]=T1+Tlapselow*(z1-z[i]);} \
+          z[nb+1]=z1-dzbound; T[nb+1]=T1+Tlapselow*dzbound; \
+          na=int((Zmax-z2-2*dzbound)/dzhi)+1; n=na+nb+2; \
+          z[nb+2]=z2+dzbound; T[nb+2]=T2-Tlapsehi*dzbound; \
+          k=int(z[nb+2]/dzhi); for (i=nb+3; i<=n; i++) \
+          {z[i]=(i-nb-2+k)*dzhi; T[i]=T2+Tlapsehi*(z2-z[i]); \
+          if (T[i]<Tmin) T[i]=Tmin;} \
+          for (i=1; i<=n; i++) printf "%6.3f %6.2f\n",z[i],T[i];}' >! zt.t
+  set NZother=`wc -l zt.t`     # number of extra Z levels and temperatures:
+    # Propgen parameters:
+  set maxnewphase=500          # max number of new phase functions to make
+  set asymtol=0.02             # asymmetry parameter tolerance for new one
+  set fracphasetol=0.10        # max frac error in phase function for new one
+    # molecular Rayleigh scattering coefficient:
+  set raylcoef=`awk -v wav=$wavelen 'BEGIN {print 2.97E-4*wav^(-4.15+0.2*wav);}'`
+    # Make the optical property file with propgen
+  put 1 $scattable 1 $lwcfile  $maxnewphase $asymtol $fracphasetol \
+      $raylcoef  $NZother[1] >! p.t
+  cat zt.t >> p.t
+  put $prpfile >> p.t
+  propgen < p.t
+  rm -f p.t zt.t
+endif
+
+
+
+
+if ($RunSHDOM) then
+  # Run SHDOM for solar radiative transfer on 200x200 sparse cumulus 
+  # LES field for one solar zenith/azimuth
+
+  set Nproc=8             # number of processors
+  set solarmu=0.866       # cosine solar zenith angle
+  set solarphi=170        # solar azimuth angle (azimuth sunlight travels)
+  set solarflux=1.0       # solar flux 
+  set solacc=1.0E-4       # solution iteration accuracy
+  set Nmu=16              # number of zenith angles over both hemispheres
+  set Nphi=32             # number of azimuth angles
+  set NmuLow=8            # number of zenith angles for low res run
+  set NphiLow=16          # number of azimuth angles for low res run
+  set splitacc=0.03       # adaptive grid cell splitting accuracy
+  set shacc=0.003         # adaptive spherical harmonic accuracy
+  set accel=T             # solution acceleration flag
+  set maxiter=150         # maximum number of iterations
+  set IPflag=0            # 3D RT
+  set BCflag=0            # horizontal boundary conditions (0 = periodic)
+  set deltaM=T            # use delta-M scaling for solar problems
+  set MaxMB=2000         # Initial memory parameters:
+  set SplittingFactor=5.0
+  set NumSHtermFactor=1.0
+  set CellPointRatio=1.5
+  set windspeed=5.0       # near surface wind speed (m/s) for ocean reflectance
+
+  set delxy=`cat $lwcfile | awk '{if (NR==3) print $1;}'`
+  set xydomain=`cat $lwcfile | awk '{if (NR==2) {nx=$1; ny=$2;} if (NR==3) {dx=$1; dy=$2;}} END {D=nx*dx; if (ny*dy>D) D=ny*dy; print D;}'`
+
+        # input parameters for output radiances:
+  set Routparm="$Zref $delxy $delxy 0.0 0.0  23  1.00 0.0 \
+   .9945 -10 .9781 -10 .9511 -10 .9135 -10 .8660 -10 .8090 -10 .7431 -10 .6691 -10 .5878 -10 .5000 -10 .4067 -10 \
+   .9945 170 .9781 170 .9511 170 .9135 170 .8660 170 .8090 170 .7431 170 .6691 170 .5878 170 .5000 170 .4067 170"
+  set radfile=${outbase}.rad
+  set nb=(`head -2 $prpfile | tail -1`)
+
+    # Make the surface reflection file for ocean reflectance model
+  put O "1 1 $xydomain $xydomain" "1 1 290 $windspeed 0.0" >! oceansfc.t
+
+    # Run low resolution SHDOM
+  set runname=${outbase}lr
+  put $runname $prpfile oceansfc.t NONE NONE NONE "$nb[1] $nb[2] $nb[3]"\
+     "$NmuLow $NphiLow" $BCflag $IPflag $deltaM P \
+     S "$solarflux $solarmu $solarphi"  0.0 $wavelen \
+     "$splitacc $shacc" "$accel 1.0E-3 $maxiter" 0 NONE \
+     $MaxMB $SplittingFactor $NumSHtermFactor $CellPointRatio >! ${runname}.inp
+  mpirun -np $Nproc shdom90 < ${runname}.inp  >&! ${runname}000.log
+  rm -f ${runname}.inp
+
+    # Get the memory params output in the log files
+  cp /dev/null mempar.t
+  set m=0
+  while ($m < $Nproc)
+    grep "Actual MAX_TOTAL_MB" ${runname}00${m}.log | \
+           awk '{print $1,$2,$3,$4;}' >> mempar.t
+    @ m++
+  end
+
+    # Make the memory parameters input file (assumes same number of base 
+    # grid points for each processor).  Adjust MaxTotMB and MaxProcMB for
+    # your SMP machine.  The factors by which the ADAPT_GRID_FACTOR (agf),
+    # NUM_SH_TERM_FACTOR (shf), and CELL_TO_POINT_RATIO (cpr) are increased
+    # from low resolution to high resolution run will depend on the particular
+    # problem and wavelength.
+  set runname=${outbase}hr
+  cat mempar.t | awk -v Nproc=$Nproc -v Nmu=$Nmu -v Nphi=$Nphi \
+    'BEGIN {MaxTotMB=16000; MaxProcMB=3584; Nlm=Nmu*Nphi/2;} \
+     {agf[NR]=$2; shf[NR]=$3; cpr[NR]=$4; \
+      if (shf[NR]<0.15) shf[NR]=0.15; if (cpr[NR]<1.0) cpr[NR]=1.0; \
+      agf[NR]=1.4*agf[NR]; shf[NR]=1.1*shf[NR]; cpr[NR]=1.1*cpr[NR]; \
+      maxmbfac[NR]=(16.5*cpr[NR]+28+Nphi+(3*Nlm)*shf[NR])*agf[NR];} \
+     END {for (i=1; i<=Nproc; i++) sum+=maxmbfac[i]; \
+            print "! SHDOM memory parameters file"; print Nproc; \
+            for (i=1; i<=Nproc; i++) {maxmb=MaxTotMB*maxmbfac[i]/sum; \
+            if (maxmb>MaxProcMB) maxmb=MaxProcMB;\
+            printf "%4d %5.3f %5.3f %5.3f\n", maxmb,agf[i],shf[i],cpr[i];} }'\
+     >! ${runname}_mem_params.inp
+           
+    # Now run the high res SHDOM with the memory params for each proc
+  put $runname $prpfile oceansfc.t NONE NONE NONE "$nb[1] $nb[2] $nb[3]"\
+     "$Nmu $Nphi" $BCflag $IPflag $deltaM P \
+     S "$solarflux $solarmu $solarphi"  0.0 $wavelen \
+     "$splitacc $shacc" "$accel $solacc $maxiter" \
+     1 R $Routparm $radfile NONE \
+     $MaxMB $SplittingFactor $NumSHtermFactor $CellPointRatio >! ${runname}.inp
+  mpirun -np $Nproc shdom90 < ${runname}.inp  >&! ${runname}000.log
+  rm -f ${runname}.inp
+  rm -f mempar.t oceansfc.t
+endif
+
+

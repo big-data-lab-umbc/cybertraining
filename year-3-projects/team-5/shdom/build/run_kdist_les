@@ -1,0 +1,271 @@
+#!/bin/csh
+#   Example script for broadband shortwave or longwave radiative transfer 
+# on the FIRE LES 2D cloud output using the RRTM k-distributions.
+# Runs ckdswrrtm or ckdlwrrtm to make the k-distribution file, propgen
+# to make the SHDOM property file, and SHDOM to do the radiative transfer.
+# Outputs internal fluxes and net flux convergence.  The last section sums 
+# over the bands and converts net flux convergence to heating rate.
+# Warning: the shortwave Mie table generation may take several hours.
+# To save time the band central wavelength option is used in make_mie_table 
+# instead of the more accurate spectral band averaging option.
+# Fu's CKD may be used instead of RRTM by commenting in the appropriate lines.
+set AWK=awk   # use nawk on SGI and Sun
+
+
+set Shortwave=1     # 1 for shortwave, 0 for longwave
+
+#    Run the desired section of this script
+set MakeCKD=1
+set MakeMieTables=1
+set MakePropertyFile=1
+set RunSHDOM=1
+set SumBands=1
+
+
+#    Set the atmospheric profile and cloud LWC file names
+set atmfile="usatm.dat"
+set lwc1file="les2y21.lwc"
+set lwc2file="les2y21.lwc2"
+
+#   Set the k-distribution bands for shortwave or longwave,
+#     and the file names
+if ($Shortwave) then
+  set startband=1;  set endband=14    # for SWRRTM
+  # set startband=1;  set endband=6   # for Fu's CKD
+  set ckdfile="usatm_sw.ckd"
+  set scatbase="water_sw"
+  set prpbase="les2y21_sw"
+  set outbase="les2y21_sw"
+  set outfile = "les2y21sw.out"
+else
+  set startband=1;  set endband=16     # for SWRRTM
+  # set startband=7;  set endband=18   # for Fu's CKD
+  set ckdfile="usatm_lw.ckd"
+  set scatbase="water_lw"
+  set prpbase="les2y21_lw"
+  set outbase="les2y21_lw"
+  set outfile = "les2y21lw.out"
+endif
+
+
+
+
+# ----------------------------------  Start of Processing
+# Compile the "put" command
+if (!(-e put))  cc -o put  put.c
+
+
+if ($Shortwave) then
+  #    The wavenumber and wavelength ranges for swrrtm's bands
+  set waveno1=(38000 29000 22650 16000 12850  8050 7700 6150 5150 4650 4000 3250 2600 820)
+  set waveno2=(50000 38000 29000 22650 16000 12850 8050 7700 6150 5150 4650 4000 3250 2600)
+  set wavelen1=(.2   .263 .344 .44  .625 .78 1.24 1.30 1.63 1.94 2.15 2.50  3.077 3.846)
+  set wavelen2=(.263 .344 .440 .625 .78 1.24 1.30 1.63 1.94 2.15 2.50 3.077 3.846 12.195)
+  #  Set the Rayleigh molecular scattering coefficients for swrrtm bands
+  set molecoef=(0.1463370 3.5541952E-02 1.3056834E-02 4.2549581E-03 1.3035705E-03 3.8487033E-04 1.1156387E-04 6.8169866E-05 2.9846953E-05 1.6589693E-05 1.0069725E-05 4.9696632E-06 2.1081225E-06 6.7372980e-7)
+  #  Wavelength steps for averaging Mie calculation (microns)
+  set deltawave=(.03 .04 .04 .05 .05 .05 .05 .05 .05 .01 .05 .05 .05 .1)
+else
+  #    The wavenumber and wavelength ranges for lwrrtm's bands
+  set waveno1=( 10 250 500 630 700 820  980 1080 1180 1390 1480 1800 2080 2250 2380 2600)
+  set waveno2=(250 500 630 700 820 980 1080 1180 1390 1480 1800 2080 2250 2380 2600 3000)
+  set wavelen1=(40.0 20.0 15.87 14.29 12.20 10.20  9.26  8.47  7.19  6.76  5.56  4.81  4.44  4.20  3.85  3.33)
+  set wavelen2=(1000 40.0 20.0  15.87 14.29 12.20 10.20  9.26  8.47  7.19  6.76  5.56  4.81  4.44  4.20  3.85)
+  #  Set the Rayleigh molecular scattering coefficients for lwrrtm bands
+  set molecoef=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+  #  Wavelength steps for averaging Mie calculation (microns)
+  set deltawave=(5.0 2.0 1.0 0.2 0.2 0.2 0.2 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1)
+endif
+
+#    The wavenumber and wavelength ranges for Fu's bands
+#set waveno1=(14500 7700 5250 4000 2850 2500 1900 1700 1400 1250 1100 980 800 670 540 400 280 0)
+#set waveno2=(50000 14500 7700 5250 4000 2850 2200 1900 1700 1400 1250 1100 980 800 670 540 400 280)
+#set wavelen1=(0.20 0.7 1.3 1.9 2.5 3.5 4.00 5.26 5.88 7.14 8.00  9.09 10.20 12.5 14.9 18.5 25.0 35.7) 
+#set wavelen2=(0.70 1.3 1.9 2.5 3.5 4.0 5.26 5.88 7.14 8.00 9.09 10.20 12.50 14.9 18.5 25.0 35.7 100.) 
+#  Set the Rayleigh molecular scattering coefficients for Fu's bands
+#set molecoef=(9.022E-3 5.282E-4 5.722E-5 1.433E-5 4.526E-6 1.529E-6  0 0 0 0 0 0 0 0 0 0 0 0) 
+
+
+if ($MakeCKD) then
+  #  Make the correlated k-distribution data file from the atmosphere profile
+
+  if ($Shortwave) then
+    put $atmfile $ckdfile 1.0 "370 1.7 0.3" | ckdswrrtm
+  else
+    put $atmfile $ckdfile "370 1.7 0.3" | ckdlwrrtm
+  endif
+  # put $atmfile $ckdfile "360 1.6 0.28" | ckdfu
+endif
+
+
+
+if ($MakeMieTables) then
+  #  Makes the Mie scattering tables for spherical water droplets for
+  # gamma size distributions with a range of effective radius. 
+
+  set distflag=G                   # G=gamma, L=lognormal size distribution
+  set alpha = 7                    # gamma dist shape parameter
+  set Nretab=50                    # number of effective radius in table
+  set Sretab=0.5; set Eretab=25    # starting, ending effective radius (micron)
+  set maxradius=75                 # maximum radius in distribution (micron)
+  set partype = "W"                # W for water
+  set avgflag=C                    # C for using central wavelength
+                                   #  A for averaging over wavelength range
+  set ib=$startband
+  while ($ib <= $endband) 
+    if ($avgflag == "A") then
+      put "$wavelen1 $wavelen2" $partype $avgflag $deltawave[$ib] $distflag \
+         $alpha "$Nretab $Sretab $Eretab" $maxradius ${scatbase}${ib}.scat \
+        | make_mie_table
+    else
+      put "$wavelen1[$ib] $wavelen2[$ib]" $partype $avgflag $distflag \
+         $alpha "$Nretab $Sretab $Eretab" $maxradius ${scatbase}${ib}.scat \
+        | make_mie_table
+    endif
+    @ ib++
+  end
+endif
+
+
+
+
+if ($MakePropertyFile) then
+  # Runs propgen to make the SHDOM optical property file from the 
+  # type 2 LWC file for the 64x17 stratocumulus LES slice.  
+  # First converts the type 1 LWC file (with no effective radius) to 
+  # a type 2 LWC file.
+
+  set dropconc=50              # droplet concentration (/cm^3)
+  set alpha = 7                # gamma dist shape parameter
+  set Zother=(0 2 4 6 8 10 20 30)  # levels to use (km) besides those in LWC file
+  set maxnewphase=50           # max number of new phase functions to make
+  set asymtol=0.01             # asymmetry parameter tolerance for new one
+  set fracphasetol=1.0         # max fractional error in function for new one
+
+   # Make the type 2 LWC file: get the effective radius from the LWC
+  cat $lwc1file | $AWK -v conc=$dropconc -v alpha=$alpha \
+    '{if (NR==1) print "2 parameter LWC file"; if ((NR>1)&&(NR<6)) print $0;\
+      if (NR>5) {lwc=$4; re=3.0; if (lwc>0.0) \
+        re=100*(lwc*(0.75*(alpha+3)^2)/(3.14159*(alpha+1)*(alpha+2)*conc))^(1.0/3); \
+       print $1,$2,$3,lwc,re;} }' >! $lwc2file
+
+   # Interpolate the temperatures at the other Z levels
+  put $Zother >! z.t
+  sort -n $atmfile >! atm.t
+  $AWK 'BEGIN {j=0; while (getline<"atm.t" != 0) \
+       {z[j]=$1; T[j]=$3; j++;} maxj=j; j=0;} \
+     {zval=$1; for (j=1; j<maxj; j++) {if (z[j]>=zval) break;}  \
+      u=(zval-z[j-1])/(z[j]-z[j-1]); Tval=u*(T[j]-T[j-1])+T[j-1]; \
+      printf "%6.3f %6.2f\n", zval,Tval; }'  z.t >! zt.t
+
+  # Make the SHDOM property files for the bands
+  set ib=$startband
+  while ($ib <= $endband) 
+    put 1 ${scatbase}${ib}.scat 1 $lwc2file \
+        $maxnewphase $asymtol $fracphasetol $molecoef[$ib]  $#Zother >! p.t
+    cat zt.t >> p.t
+    put ${prpbase}${ib}.prp >> p.t
+    propgen <p.t 
+    @ ib++
+  end
+  rm -f z.t zt.t atm.t p.t
+endif
+
+
+
+
+if ($RunSHDOM) then
+#    Run SHDOM for each of the shortwave or longwave bands
+
+  set IPflag=0                # independent pixel flag (0 = 3D, 3 = IP)
+  set BCflag=0                # horizontal boundary conditions (0 = periodic)
+  if ($Shortwave) then
+    set Nmu=8                 # number of zenith angles in both hemispheres
+    set Nphi=16               # number of azimuth angles
+    set deltaM=T              # use delta-M scaling for solar problems
+    set mu0=0.50              # solar cosine zenith angle
+    set phi0=0.0              # solar beam azimuth (degrees)
+    set flux0=1.0             # solar flux (relative)
+    set sfcalb=0.05           # surface Lambertian albedo
+    set splitacc=(1 5 5 5 5 5 5 5 5 5 5 2 2 2 2 2)    # adaptive grid splitting accuracy 
+    set shacc   =(0.1 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.2 0.2 0.2 0.2 0.2) # adaptive spherical harmonic accuracy
+  else
+    set Nmu=8                 # number of zenith angles in both hemispheres
+    set Nphi=16               # number of azimuth angles
+    set deltaM=F              # don't use delta-M scaling 
+    set sfcemis=0.98          # surface emissivity
+    set Tsfc=288              # surface temperature (K)
+    set Tsky=0.0              # downwelling brightnes temperature
+    set splitacc=5            # adaptive grid splitting accuracy 
+    set shacc=1               # adaptive spherical harmonic accuracy
+  endif
+  set solacc=1.0E-4           # solution accuracy
+  set accel=T                 # solution acceleration flag
+  set maxiter=100             # maximum number of iterations
+
+  #    The cell splitting accuracy and SH truncation accuracy vary with the
+  #    band as the solar flux in the band changes.
+  set ib=$startband
+  while ($ib <= $endband)
+    echo " "; echo " "; echo "${outbase}${ib}"
+    set nb=(`head -2 ${prpbase}${ib}.prp | tail -1`)
+    if ($Shortwave) then
+      put ${prpbase}${ib} ${prpbase}${ib}.prp NONE $ckdfile NONE NONE "$nb[1] $nb[2] $nb[3]" \
+        "$Nmu $Nphi" $BCflag $IPflag $deltaM P S "1.0 $mu0 $phi0" 0.0\
+         $sfcalb "$waveno1[$ib] $waveno2[$ib]" \
+        "$splitacc[$ib] $shacc[$ib]" "$accel $solacc $maxiter"  \
+        2 F 4 $outbase${ib}f.out H 2 $outbase${ib}h.out \
+        NONE 15 3.0 1.0 1.5 | shdom90
+    else
+      put ${prpbase}${ib} ${prpbase}${ib}.prp NONE $ckdfile NONE NONE "$nb[1] $nb[2] $nb[3]" \
+        "$Nmu $Nphi" $BCflag $IPflag $deltaM P T $Tsfc $sfcemis 0.0 \
+        "$waveno1[$ib] $waveno2[$ib]" \
+        "$splitacc $shacc" "$accel $solacc $maxiter"  \
+        2 F 4 $outbase${ib}f.out H 2 $outbase${ib}h.out \
+        NONE 15 3.0 1.0 1.5 | shdom90
+    endif
+    @ ib++
+  end
+endif
+
+
+
+
+if ($SumBands) then
+#   Sums the shdom output for flux and net flux divergence over the
+#   k-distribution bands to make the broadband flux and heating rates.
+
+  echo "! Broadband wavelength range: $wavelen1[$startband] - $wavelen2[$endband] "  >! $outfile
+  $AWK '{if (NR==3) print $3,$5,$7;}' ${outbase}${startband}f.out >> $outfile
+  echo "!  X      Y      Z     Fup  Fdown   Heating" >> $outfile
+  echo "! (km)   (km)   (km) (W/m^2) (W/m^2) (K/hr)" >> $outfile
+  set ib=$startband
+  while ($ib <= $endband)
+    cat ${outbase}${ib}f.out | $AWK '{if (NR>18) print $1,$2,$3,$4,$5+$6;}' >! f.t
+    cat ${outbase}${ib}h.out | $AWK '{if (NR>18) print $0}' >! h.t
+    paste f.t h.t | $AWK '{print $1,$2,$3,$4,$5,$9;}' >! r.t
+    if ($ib > $startband) then
+      paste l.t r.t | $AWK '{print $1,$2,$3,$4+$10,$5+$11,$6+$12;}' >! o.t
+    else
+      mv r.t o.t
+    endif
+    mv o.t l.t
+    @ ib++
+  end
+
+  set nz=`$AWK '{if (NR==3) print $7;}' ${outbase}${startband}f.out`
+
+  #  Compute the heating rate in K/hr
+  #     dT/dt = {1 \over c_p \rho} dF_n/dz = {R T \over c_p p} dF_n/dz
+  #   Linearly interpolate the temperature and pressure profile to
+  #     compute the heating rate conversion factor.
+  sort -n ${atmfile} >! atm.t
+    $AWK -v nz=$nz 'BEGIN {j=0; while (getline<"atm.t" != 0) {z[j]=$1; P[j]=$2; T[j]=$3; j++;}  maxj=j; j=0;} \
+     { if (NR<=nz) {zval=$3; for (j=1; j<maxj; j++) { if (zval<=z[j] && zval>=z[j-1]) \
+     { u=(zval-z[j-1])/(z[j]-z[j-1]);  Pval=u*(P[j]-P[j-1])+P[j-1];  Tval=u*(T[j]-T[j-1])+T[j-1]; \
+       print (3600/1E5)*(287*Tval)/(1005*Pval); break;} } } }'  l.t  >! c.t
+  $AWK -v nz=$nz 'BEGIN {j=0; while (getline<"c.t" != 0) {C[j]=$1; j++;} } \
+      { j=(NR-1)%nz; printf "%6.3f %6.3f %6.3f %6.2f %6.2f %7.4f\n", $1,$2,$3,$4,$5,$6*C[j];}'  l.t >>$outfile
+
+  rm -f  h.t f.t r.t l.t o.t atm.t c.t
+endif

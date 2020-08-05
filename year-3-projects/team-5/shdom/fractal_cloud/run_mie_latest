@@ -1,0 +1,31 @@
+#!/bin/csh
+# Adopted from CyberTraining 2018 Team5 group's work
+# CPN (2020) 
+#----------------------
+# Author: Meng Gao
+# DATE: 2018
+
+set AWK=awk   # use nawk on SGI and Sun
+
+
+set Solar=1     # 1 for solar, 0 for thermal
+
+set wavelen=0.865 #0.86 #2.1
+set re=12 #CER in um
+set scattable=spot3D0p865CER12.scat
+
+# ----------------------------------  Start of Processing
+
+
+set distflag=G                   # G=gamma, L=lognormal size distribution
+set alpha=17.0
+set Nretab=1                     # number of effective radius in table
+set Sretab=$re; set Eretab=$re     # starting, ending effective radius (micron)
+set maxradius=50                 # maximum radius in distribution (micron)
+set partype = "W"                # W for water
+set avgflag=C                    # C for using central wavelength
+
+put "$wavelen $wavelen" $partype $avgflag $distflag $alpha \
+     "$Nretab $Sretab $Eretab" $maxradius $scattable | make_mie_table
+
+

@@ -1,0 +1,203 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Running SHDOM with Multiple Processors </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Running SHDOM with Multiple Processors</H2>
+
+SHDOM may be run on multiple processors, either in a shared memory
+system (e.g. SMP) or in a distributed memory system (e.g. a cluster),
+using the Message Passing Interface (MPI) version 1.  All of the SHDOM
+code that calls MPI routines is in the shdom_mpi.f90 file.  A set of
+equivalent (mostly) dummy routines is provided in shdom_nompi.f, which
+allows SHDOM to be compiled without an MPI libarary.  Fortran 90 is
+required to compile SHDOM with the MPI calls.  Using the parallel
+processing aspects of SHDOM requires that the MPI system be installed on
+the target computer.  Then the usual way to compile and run a program
+with MPI is:
+ <PRE>
+   mpif90 -O2 -o shdom90  shdom90.f90 shdom_mpi.f90 shdom_nonetcdf.f90 \
+              shdomsub1.f shdomsub2.f shdomsub3.f ocean_brdf.f fftpack.f
+    mpirun -np 4  shdom90 < shdom.inp 
+</PRE>
+ where shdom.inp has the user input parameters and "-np 4" specifies
+that four processors will be used.  The MPI shared memory device (e.g.
+ch_shmem from the MPICH implementation) will be somewhat more efficient
+on an SMP machine than a device (e.g. ch_p4) that uses a network
+communication protocol (such as ssh).
+<P>
+
+The SHDOM computation is divided up on the multiple processors with
+domain decomposition, meaning that each processor works on a portion of
+the horizontal domain.  MPI routines determine the 2D Cartesian topology
+that maps the full domain onto the processors, but usually four
+processors will be mapped to two in X by two in Y.  The boundaries
+between processors are at property grid lines, and the internal base
+grid points are repeated on both sides of the boundaries.  Thus a
+specified 128x128 base grid (NX=128, NY=128) run on four processors will
+result in a 65x65xNZ base grid in each processor.  The SHDOM output to
+stdout includes the position of each processor in the horizontal domain.
+Using SHDOM with multiple processors requires a periodic domain in X and
+Y; open boundary conditions will be turned off if specified.  The BCFLAG
+parameter (user input for open boundary conditions) is also used
+internally to indicate if there are multiple processors in the X (BCFLAG
+bit 2) and Y (BCFLAG bit 3) directions.  Thus, multiple processors in
+both directions will output BCFLAG=12.
+<P>
+
+MPI calls are needed to pass data between neighboring processors for
+three parts of the SHDOM algorithm: 1) the direct beam solar flux
+calculation at each internal grid point, 2) the radiative transfer
+equation integrations along each discrete ordinate during the solution
+iterations, and 3) the integrations along the viewing directions for the
+radiance output.  MPI calls are also made to move data between the
+master processor (MPI "rank" 0) and all the other processors.  The
+master processor performs all the file input/output, except for the
+save/restore files.  The binary save/restore files are written and read
+locally by each processor, using names with the processor number
+appended to the specified file names.  Thus the slave processors do not
+need to share disk files with the master processor.  The master
+processor reads the user input parameters, and the surface parameter and
+k-distribution files (if specified) and broadcasts the parameters to the
+other processors.  The master processor reads the property input file
+and sends the appropriate subdomain of the optical properties to each
+processor.  The master processor also gathers the output (e.g. fluxes,
+net flux convegence, and radiances) from the other processors and writes
+the output files.
+<P>
+
+The user input parameters or namelist format is the same whether using
+multiple processors or using a single processor.  The input files for
+multiprocessing are all the same, but the "standard" format input
+property files, with the phase function Legendre series specified at
+every point, are not allowed.  The "log" output is written to stdout by
+the master processor.  The other processors write their output to
+RUNNAME//"???.log" (where RUNNAME is a user input string and ??? is the
+processor number).  The lines written each iteration during the solution
+procedure are for the subdomain operated on by each processor; therefore
+the number of grid points decreases as more processors are used.  The
+solution criterion (represented in the "Log(Sol)" column), however, is
+the global solution criterion, calculated from the source function
+vectors in all processors (so that all the processors stop at the same
+iteration).  For programming convenience, not all output formats are
+allow for multiple processors: only base grid points (no adaptive grid
+points) are output for F, H, S output files; flux (F) format 2 (i.e.
+hemispheric fluxes interpolated to a user defined grid on one Z plane)
+is not allowed; and visualization (V), source function (J), and medium
+(M) outputs are not supported.  The output file formats do not change
+when using multiple processors.  The NPTS, NCELLS, and NSH parameters in
+the file headers are the sum of the number of grid points, grid cells,
+and spherical harmonic terms over all the processor subdomains.
+<P>
+
+Running SHDOM on N processors does not mean that the elapsed time will
+be a factor of N smaller because there is overhead to the
+parallelization.  One aspect of the parallelization overhead is the
+increase in the number of grid points due the repeated boundary points. 
+Another aspect is the time needed to pass data between processors using
+MPI and to wait for the data to arrive at all processors.  The third
+overhead source is that the discrete ordinate radiances (computed during
+the solution iterations) at *all* the processor boundaries need to be
+traced back to the previous Z level; while this only occurs at one X and
+one Y boundary for a single processor.  This latter source of overhead
+is larger for domains with large Z grid spacing and small horizontal
+grid spacing.  All these sources of parallelization overhead are reduced
+in a fractional sense by having the processor boundary grid points be a
+smaller fraction of the total number of grid points.  Tests on an SMP
+machine with boundary layer cloud domains show that the overhead is
+reasonable (<30%) for processor subdomains having 32x32 or more
+horizontal grid points.
+<P>
+
+SHDOM running on multiple processors does not give exactly the same
+results as on a single processor due to differences in the discrete
+ordinate integrations in the iterative solver.  The differences,
+however, are small compared to the overall SHDOM accuracy.  Since small
+computational differences result in different cell splitting patterns,
+even the number of iterations can change slightly with the number of
+processors SHDOM uses.
+<P>
+
+For optimal memory use on an SMP machine it is necessary to specify the
+four memory parameters (MAX_TOTAL_MB, ADAPT_GRID_FACTOR,
+NUM_SH_TERM_FACTOR, CELL_TO_POINT_RATIO) separately for each processor
+because a processor subdomain with more cloud will have more adaptive 
+grid points and thus larger values of the memory parameters.  When SHDOM
+is run on multiple processors it tries to read a file with the name
+RUNNAME//"_mem_params.inp".  The format of this file is
+ <PRE>
+  Comment line
+  Number of processors
+  One line for each processor (0 to Nproc-1) with the four parameters:
+    MAX_TOTAL_MB ADAPT_GRID_FACTOR NUM_SH_TERM_FACTOR CELL_TO_POINT_RATIO
+ </PRE>
+If there is no input memory parameter file, or it is for a different
+number of processors, then the default memory parameters input by the
+user are used.  At the end of the SHDOM computation the actual memory
+used and the three memory ratios are output to the log file for each 
+processor.  These may be used as guidance for selecting the memory   
+parameters for another similar calculation using the same number of  
+processors.  A Unix script (run_multproc) illustrating this procedure
+is in the distribution. <P>
+
+If some processors have more computation to do than the others, then
+there is a loss of efficiency because the other processors spend much of
+their time waiting.  The relative load on each processor in SHDOM is
+nearly proportional to the total number of grid points (base plus
+adaptive) in each subdomain.  If a substantial fraction of the total
+number of grid points are adaptive, and the adaptive grid points are
+very unevenly distributed, then the processor load will be unbalanced.
+This could occur, for example, if there is high cloud fraction on one
+side of the full domain, and low cloud fraction on the other side. 
+SHDOM has the ability to perform processor load balancing.  Normally,
+this feature is turned off, but may be used by setting the logical
+parameter "LoadBalance=.TRUE." at the beginning of shdom_mpi.f90.  The
+load balancing procedure requires that a previous SHDOM run be made with
+the same property file, so that the total number of grid points can be
+estimated.  This prior run can be done at lower angular resolution
+(NMU/NPHI) and only needs to iterate until the cell splitting is
+finished (at SOLACC=1.0E-3).  If the load balancing is turned on, the
+master process of MPI-enabled SHDOM writes a file (in subroutine
+END_SHDOM_MPI), RUNNAME//"_load_balance.out", with the number of grid
+points in a column around each property grid point.  To implement load
+balancing the user must copy the appropriate
+RUNNAME//"_load_balance.out" file to the input file
+RUNNAME//"_load_balance.inp", which SHDOM reads (in subroutine
+OPTIMIZE_PROCESSOR_DOMAINS) and uses if the file exists and is
+compatible with the input property file.  SHDOM uses a simulated
+annealing algorithm to try to equalize the number of grid points in each
+processor subdomain by adjusting the boundary lines between the
+processors.  If a load balance optimization is performed, each processor
+writes the optimum boundary lines (in the property grid) to stdout.
+<P>
+
+In a heterogeneous clustered environment, the processors on different
+machines may have different speeds.  If load balancing is being used (by
+setting LoadBalance=.TRUE.), then another file with the relative speeds
+of the processors may be input to SHDOM.  This file has the name 
+"shdom_proc_times.inp", and lists the relative times (one processor time
+per line) running SHDOM takes on each processor.  It is important to 
+understand the order in which MPI allocates the processors in your
+cluster.  For example, suppose the cluster has two computers, each with
+two SMP processors.  Then the MPI machine file might look like this:
+ <PRE>
+    fast:2
+    slow:2
+ </PRE>
+ Typically, MPI will allocate the processors as follows: 0 on "fast", 1
+on "slow", 2 on "fast", and 3 on "slow".  If SHDOM is twice as fast on
+"fast" as on "slow", then shdom_proc_times.inp could be
+ <PRE>
+    1.0
+    2.0
+    1.0
+    2.0
+ </PRE>
+ When SHDOM with load balancing is run with four processors on MPI, the
+Y boundary line will be adjusted so that each processor on computer
+"fast" has twice the number of grid points as each processor on "slow".
+
+</BODY>
+</HTML>

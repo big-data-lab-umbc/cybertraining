@@ -1,0 +1,50 @@
+#!/bin/csh
+# Adopted from SHDOM example
+# Will be eddited to run 1D fractal cloud case.
+# CPN (2020)
+# -----------------
+#   Example script for monochromatic solar or thermal radiative transfer 
+# on the FIRE LES 2D cloud.  Makes Mie tables with make_mie_table, runs
+# propgen to make the SHDOM property file and then shdom90 to do the 
+# radiative transfer.
+
+set prpfile=spot3D0p865CER12.prp#'cloud0p86.prp'
+set outbase=spot3D0p865CER12#'cloudEx'
+set wavelen=0.865#0.86
+set muSZA=0.50#0.50
+set degSAA=0.0#0.0
+set muVZA="1.0"
+
+#   Run SHDOM for either solar or thermal radiative transfer
+
+#   Set SHDOM parameters: 
+set IPflag=0                # independent pixel flag (0 = 3D, 3 = IP)
+set BCflag=0                # horizontal boundary conditions (0 = periodic)
+  
+set Nmu=1                # number of zenith angles in both hemispheres
+set Nphi=2               # number of azimuth angles
+set deltaM=T              # use delta-M scaling for solar problems
+set mu0=$muSZA              # solar cosine zenith angle
+set phi0=$degSAA              # solar beam azimuth (degrees)
+set flux0=1.0             # solar flux (relative)
+set sfcalb=0.0           # surface Lambertian albedo
+set splitacc=0.03         # adaptive grid cell splitting accuracy
+set shacc=0.003           # adaptive spherical harmonic accuracy
+
+set solacc=1.0E-4           # solution accuracy
+set accel=T                 # solution acceleration flag
+set maxiter=100             # maximum number of iterations
+                    # input parameters for output radiances
+set Routparm="1.0  1 1  0 0  2  $muVZA 0 $muVZA 180"
+set Foutparm="2 1.0 1.0 1.0"
+
+set nb=(`head -2 $prpfile | tail -1`)
+echo " "; echo " "; 
+echo "$outbase :  wavelen=$wavelen  Nmu=$Nmu  split=$splitacc"
+put les2y21w16 $prpfile NONE NONE NONE NONE "$nb[1] $nb[2] $nb[3]" \
+  "$Nmu $Nphi" $BCflag $IPflag $deltaM P S "$flux0 $mu0 $phi0" 0.0 \
+  $sfcalb $wavelen "$splitacc $shacc" "$accel $solacc $maxiter"  \
+  6 R $Routparm ${outbase}r.out  M 1 ${outbase}m.out \
+  S 1 ${outbase}s.out  F 1 ${outbase}f1.out \
+  F $Foutparm ${outbase}f2.out  F 4 ${outbase}f4.out \
+  NONE 5000 3.0 1.0 1.5 | shdom90

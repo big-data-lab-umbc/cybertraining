@@ -1,0 +1,57 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Correlated K-distribution File Format</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Correlated K-distribution File Format</H2>
+
+    The CKD file has the correlated k-distribution information for a
+series of spectral bands for a particular atmospheric profile. This file
+is made by another program (e.g. ckdfu.f) from a profile.  Each band,
+i.e. a range of wavenumbers, has a k-distribution associated with it. 
+The k-distibution is performed as a discrete sum over probability
+intervals (the delta g in the notation of Fu and Liou, 1993).  A
+radiative transfer calculation is done for each "k" in the sum, which
+represents the gaseous absorption.  The distribution of gases in the
+atmosphere is assumed to horizontally uniform, and so the absorption
+coefficients depend only on height.  Thus the CKD file specifies the
+absorption coefficient (in km^-1) for each height, "k" in the sum, and
+each band.  The delta g's are the weights with which the separate
+radiative transfer results are added together.
+<P>
+
+There are three sections in the CKD file.
+ <OL>
+  <LI> The band information.
+  <LI> The atmosphere information.
+  <LI> The absorption coefficients for each band and g range.
+ </OL>
+
+<P>
+The format is:
+ <PRE>
+   Comment line
+   Number of bands
+   Comment line
+   For each band: 
+     band num, waveno1, waveno2, solar flux, number of k's, all the delta g's
+   Number of z levels
+   Two comment lines
+   For each atmospheric level from the top down:
+     height, (other profile information is not used)
+   Comment line
+   For each band and level:
+     band number, level number, all the k_i's
+ </PRE>
+Notes: waveno1 and waveno2 are the starting and ending wave numbers in
+cm^-1 of the bands; solar flux is the top of the atmosphere solar
+irradiance in W/m^2 for overhead sun.  The level numbers start with 1
+at the top of the atmosphere.  The levels in the CKD file are completely
+independent of the levels in the SHDOM run, though they should cover the
+SHDOM levels.  The k-distributions should start with the lowest k's
+(they are used in the reverse order in the program).
+
+</BODY>
+</HTML>

@@ -1,0 +1,144 @@
+<HTML>
+<HEAD>
+<TITLE>MAKE_ICE_TABLE</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>MAKE_ICE_TABLE </H2>
+
+Make_ice_table calculates the shortwave single scattering properties of
+gamma distributions of one of eight shapes of ice crystals and outputs
+the results in a scattering table.  The ice crystal scattering properties
+were produced by Ping Yang and are described in this article:
+  <BLOCKQUOTE>
+   Yang, Ping,  K. N. Liou, Klaus Wyser, David Mitchell, 2000:
+   Parameterization of the scattering and absorption properties of
+   individual ice crystals.  J. Geophys. Res., 105 (D4), 4699-4718.
+  </BLOCKQUOTE>
+ The scattering properties are tabulated for 56 wavelength bands from
+0.20 to 5.0 microns and 24 particle lengths from 3 to 3500 microns. The
+eight ice crystal shapes are 1=hollow column, 2=solid column, 3=plate,
+4=dendrite, 5=rough aggregate, 6=smooth aggregate, 7=4-bullet rosette,
+and 8=6-bullet rosette (see the article for pictures of these shapes).
+<P>
+
+The phase functions have been modified for this distribution by 
+convolving the portions with scattering angles less than 10 degrees by a
+gaussian with 0.25 degree rms width and by adjusting the forward peak
+height to normalize each phase function.  The reasons for doing this is
+that the original phase functions with the largest size parameters would
+require a huge number of Legendre series terms to be represented for
+SHDOM and also were not properly normalized.  The number of Legendre
+terms required for the smoothed forward peak phase functions is 2500.
+The smoothing of the forward peak will not affect the radiative transfer
+results significantly for nearly all applications (one application where
+it could be an issue is sun photometry, but the TMS approximation in
+SHDOM is already poor for that application).
+
+These phase functions do not contain the "delta transmission", which is
+the direct transmission of rays through parallel faces of ice crystals.
+The extinction efficiency, single scattering albedo, and asymmetry
+parameter have thus been delta rescaled to be consistent.  This reduces
+the extinction efficiency, single scattering albedo, and asymmetry
+parameter from the values in Ping Yang's original data.  The extinction
+efficiency is well below 2 for crystals with parallel faces, such as   
+plates and solid columns.
+
+The modified Ping Yang ice scattering data is stored in the file
+"sw_ice_scatter.db".  This ascii file contains a header with useful
+information, followed by the data with one line per particle shape,
+wavelength, and particle size.  Each line contains the following
+columns: 
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Heading</th>  <th align=left> Explanation </th>  </th></tr>
+<tr> <td valign="TOP">
+ S         </td><td> shape index (1 to 8) </td></tr>
+<tr> <td valign="TOP">
+ Wave1     </td><td> starting wavelength of band (microns) </td></tr>
+<tr> <td valign="TOP">
+ Wave2     </td><td> ending wavelength of band (microns) </td></tr>
+<tr> <td valign="TOP">
+ Wavcen    </td><td> center wavelength of band (microns) </td></tr>
+<tr> <td valign="TOP">
+ IndexRe   </td><td> real part of index of refraction </td></tr>
+<tr> <td valign="TOP">
+ IndexIm   </td><td> imaginary part of index of refraction </td></tr>
+<tr> <td valign="TOP">
+ SolarWt   </td><td> fraction of solar flux in wavelength band </td></tr>
+<tr> <td valign="TOP">
+ ParLength </td><td> particle length (maximum extent) (microns) </td></tr>
+<tr> <td valign="TOP">
+ ParDarea  </td><td> equivalent area spherical diameter (microns) </td></tr>
+<tr> <td valign="TOP">
+ ParDvol   </td><td> equivalent volume spherical diameter (microns) </td></tr>
+<tr> <td valign="TOP">
+ Qext      </td><td> extinction efficiency </td></tr>
+<tr> <td valign="TOP">
+ SSalb     </td><td> single-scattering albedo </td></tr>
+<tr> <td valign="TOP">
+ Asym      </td><td> asymmetry factor </td></tr>
+<tr> <td valign="TOP">
+ Phasefunc </td><td> phase function at 288 angles stored in a compressed format </td></tr>
+</table>
+<P>
+
+The log of the phase function values are stored in three digit base 95
+(there are 95 printable characters in ascii).  If the three characters
+of the base 95 number are represented by Cn (i.e. C1,C2,C3) then the
+base 95 digits are Dn=ICHAR(Cn)-32, and the phase function value are
+10**(10*(D1/95+D2/95**2+D3/95**3)-4).  This helps to compress the 
+original 152 million bytes of ice scattering data down to only 10
+millions bytes.
+<P>
+
+Make_ice_table reads the "sw_ice_scatter.db" database file to produce a
+scattering table file for gamma size distributions with a sequence of
+effective radii for one particle shape (i.e. it does not allow particle
+mixtures).  The single scattering properties are averaged over the
+specified wavelength range using a solar temperature (5800 K) Planck
+function weighting.  The program prints out the database bands and
+weightings that are used.  The gamma distributions are in terms of the
+equivalent volume spherical diameter (Dv), not the particle length.  The
+"b" parameter of the gamma distribution [n(D) = a Dv^alpha exp(-b*Dv)]
+is adjusted iteratively to achieve the correct effective radius.  The
+effective radius is defined as one half the ratio of the third moment of
+Dv to the second moment of Da (the equivalent area spherical diameter).
+The user specified effective radius may not be achievable for a
+particular particle shape and size distribution width, in which case a
+different range of effective radius or a narrower distribution (larger
+alpha) will have to be chosen.  The extinction in the output scattering
+table is normalized for distributions with an ice water content of      
+1 g/m^3 assuming an ice density of 0.916 g/cm^3.
+<P>
+
+    <H4>  Input Parameters </H4>
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+<tr><td valign="TOP">
+ICESCATDB  </td><td> filename of the ice scattering database (i.e. sw_ice_scatter.db) </td></tr>
+<tr><td valign="TOP">
+WAVELEN1   </td><td> wavelength range (microns) for this band </td></tr>
+<tr><td valign="TOP">
+WAVELEN2    </td><td>   for monochromatic choose WAVELEN1=WAVELEN2 </td></tr>
+<tr><td valign="TOP">
+SHAPEIND   </td><td> index of ice crystal shape (1=hollow column, 2=solid column, 
+              3=plate, 4=dendrite, 5=rough aggregate, 6=smooth aggregate, 
+              7=4-bullet rosette, 8=6-bullet rosette) </td></tr>
+<tr><td valign="TOP">
+NRETANB    </td><td> number of effective radii entries in scattering table </td></tr>
+<tr><td valign="TOP">
+SRETAB     </td><td> starting effective radius (micron) in scattering table </td></tr>
+<tr><td valign="TOP">
+ERETAB     </td><td> ending effective radius (micron) in scattering table </td></tr>
+<tr><td valign="TOP">
+ALPHA      </td><td> gamma distribution shape parameter  </td></tr>
+<tr><td valign="TOP">
+ICETABFILE </td><td> output scattering table file name </td></tr>
+</table>
+
+<P>
+
+</BODY>
+</HTML>

@@ -1,0 +1,37 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Grid Cell Structure</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Grid Cell Structure</H2>
+
+    To implement the adaptive grid there is a data structure that
+specifies the relation between grid cells and grid points.  Grid cells
+are rectangular volumes (e.g. cubes in 3D, rectangles in 2D).  Grid points
+are the points at which the medium properties and the radiances are
+defined. Each grid cell has 8 grid points at its corners (in 1D and 2D
+there are still 8 pointers to grid points though they are redundant). 
+Grid cells have pointers to neighboring cells, so that rays may be
+traced from cell to cell.  The adaptive grid is implemented by splitting
+cells in half (in any direction) and using pointers to parent and
+children cells.  See 
+ <A HREF="variables.html" target=right> Variable List </A>
+ section for details.
+<P>
+
+    For periodic boundary conditions there are NX*NY*(NZ-1) grid cells 
+and (NX+1)*(NY+1)*NZ grid points.  The IX=NX+1 column is the same  as
+the IX=1 column, because of the periodicity, but the grid points are
+repeated.  The last grid cell on the "right" has the last column of
+grid points on the "left" and the repeated "virtual" set of grid  points
+on the "right".  For open boundary conditions in X and Y there are
+(NX+1)*(NY+1)*(NZ-1) grid cells and NX*NY*NZ grid points. Open boundary
+conditions are done with the lowest "left most" and "right most" X and Y
+columns being independent "pixels" with their own grid cells (zero
+width), therefore one extra grid cell is required.  Independent pixel
+mode has NX*NY*(NZ-1) grid cells and NX*NY*NZ grid points
+
+</BODY>
+</HTML>

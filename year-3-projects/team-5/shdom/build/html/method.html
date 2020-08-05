@@ -1,0 +1,48 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Method in Brief </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Method in Brief</H2>
+
+    The SHDOM uses an iterative process to compute the source function
+(including the scattering integral) on a grid of points in space.  The
+angular part of the source function is represented with a spherical
+harmonic expansion. Solving for the source function instead of the
+radiance field saves memory, because there are often parts of a medium
+where the source function is zero or angularly very smooth (hence few
+spherical harmonic terms).  The other reason for using spherical
+harmonics is that the scattering integral is more efficiently computed
+than in discrete ordinates.  A discrete ordinate representation is used
+in the solution process because the streaming of radiation is more
+physically (and correctly) computed in this way.  An adaptive grid that
+chooses where to put grid points is useful in atmospheric radiative
+transfer because the source function is usually rapidly varying in
+some regions and slowly varying in others.
+
+<P>
+
+    The iterative method is equivalent to a successive order approach.
+For each iteration 
+ <OL>
+ <LI> the source function is transformed to discrete ordinates at every
+grid point, 
+ <LI> the integral form of the radiative transfer equation is used to
+compute the discrete ordinate radiance at every grid point, 
+ <LI> the radiance is transformed back to spherical  harmonics, and 
+ <LI> the new source function is computed from the radiance in spherical
+harmonics. 
+</OL>
+  As with all order of scattering methods the number of iterations
+increases with the single scattering albedo and optical depth.  A
+sequence acceleration method is used to speed up  convergence, which is
+typically achieved in under 50 iterations.  During the solution process,
+the grid cells with the integral of the source function difference above
+a certain limit are split in half, generating new grid points.  The
+number of spherical harmonic terms kept at each grid point also changes
+as the iterations proceed (i.e. adaptive spherical harmonic truncation).
+
+</BODY>
+</HTML>

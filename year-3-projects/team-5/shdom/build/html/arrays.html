@@ -1,0 +1,190 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Array Sizes and Memory Management</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Array Sizes and Memory Management</H2>
+
+    The Fortran 90 main program (shdom90.f90) determines the sizes of
+most arrays and allocates memory for them.  Thus less memory is wasted,
+the user does not usually have to recompile the program for different  
+problems, and common block mismatch errors are avoided.  As there is no
+way to determine the OUTPARM array size before calling USER_INPUT, the 
+MAXOUT and MAXPAR constants are still defined (though seldom changed). 
+Since the adaptive grid grows during the solution procedure, the maximum
+size of many arrays can only be guessed at.  The approach taken is to   
+define the maximum adaptive grid array sizes in terms of the base grid. 
+Thus the following three parameters must be input:
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr><td valign="TOP">
+  SPLITTING_FACTOR</td> <td> ratio of the max number of internal grid points 
+                         to the number of base grid points </td></tr>
+<tr><td valign="TOP">
+  NUM_SH_TERM_FACTOR</td> <td> ratio of average number of spherical harmonic
+                         terms to total possible (NLM) </td></tr>
+<tr><td valign="TOP">
+  CELL_TO_POINT_RATIO</td> <td> ratio of number of cells to number of grid points </td></tr>
+</table>
+
+In addition, to prevent SHDOM from grabbing all the available memory,   
+the maximum memory is specified with MAX_TOTAL_MB, which is the maximum
+total megabytes SHDOM should take (per processor), where a memory word
+is assumed to by 4 bytes.  The splitting factor is reduced to fit within
+the total memory limit.  The appropriate value of these parameters for a
+particular problem can be estimated from previous SHDOM output.  At the
+end of a run, shdom90 outputs the actual values needed for the four
+memory parameter values followed by the string "Actual MAX_TOTAL_MB,
+ADAPT_GRID_FACTOR, NUM_SH_TERM_FACTOR, CELL_TO_POINT_RATIO".  These
+values can then be used for the input memory parameters for similar
+SHDOM runs.  The memory parameters may also be estimated from a fast
+lower angular resolution run (smaller NMU/NPHI), though the MAX_TOTAL_MB
+will then have to be  multiplied by the ratio (high res to low res) of
+the number of spherical harmonics terms (NLM), and all the memory
+parameters will need to be increased a little beyond those output from
+the low resolution run. 
+ <P> 
+<BR>
+
+   The Fortran 77 version has all of the large arrays declared in the
+main program (shdom.f). The input property grid arrays are in a common
+block.  The array sizes are governed by constants defined in parameter
+statements.  When using the tabulated phase function (or extinction
+only) property files the large arrays are controlled by:
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr><td valign="TOP">
+  MAXPG</td><td>   max number of property grid points </td></tr>
+<tr><td valign="TOP">
+  MAXIG</td><td>   max number of internal grid points  </td></tr>
+<tr><td valign="TOP">
+  MAXIC</td><td>   max number of grid cells, between 1 and 2 times grid points </td></tr>
+<tr><td valign="TOP">
+  MAXIV </td><td>   max words for source function and radiance arrays;
+            needed size is average spherical harmonic truncation times
+            number of grid points. </td></tr>
+<tr><td valign="TOP">
+  MAXIDO</td><td>  max words for temporary discrete ordinate azimuthal array;
+            needed size is max azimuths times number of grid points.  </td></tr>
+</table>
+
+ (When changing property grid array sizes be sure you also change the
+  parameter statements in DIRECT_BEAM_PROP and TRILIN_INTERP_PROP in shdom.f.)
+If the phase function is specified at each grid point ("standard"
+property file format) the phase function arrays are large:
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr><td valign="TOP">
+  MAXPGL</td><td>  max words for the property grid phase function Legendre series. </td></tr>
+<tr><td valign="TOP">
+  MAXIGL</td><td>  max words for the internal grid phase function series.
+            These are MAXLEG (number Legendre terms) times the
+            number of grid points. </td></tr>
+</table>
+
+<P>
+The optimum use of memory requires knowledge of the particular problem
+you are running.  For example, the factor relating MAXIV to MAXIG is the
+average number of spherical harmonic terms (which depends on the angular
+resolution chosen and how much benefit the adaptive truncation
+provides).  At most, MAXIV=NLM*MAXIG, where NLM is the maximum number of
+spherical harmonic terms (NLM ~ Nmu*Nphi/2 for 3D, half that for 2D).     
+If there is no cell splitting then MAXIC=MAXIG; at most MAXIC=2*MAXIG.
+
+<P>
+For tabulated phase functions the major memory use in 4 byte words is:<BR>
+ &nbsp&nbsp MEMWORD = 16.5*MAXIC + 33*MAXIG + 3*MAXIV + MAXIDO <BR>
+For Nmu=8 Nphi=16 the most space needed is <BR>
+ &nbsp&nbsp MEMWORD = (33+33+192+16)*MAXIG = 274*MAXIG <BR>
+<P>
+
+Memory may be saved by setting unused arrays to a length of 1:
+<table border=0 cellpadding=2 cellspacing=2>
+<tr><td valign="TOP">
+  DELSOURCE </td><td> if ACCELFLAG=.FALSE. </td></tr>
+<tr><td valign="TOP">
+  PLANCK    </td><td>   if not using a thermal source </td></tr>
+<tr><td valign="TOP">
+  DIRFLUX   </td><td>   if not using a solar source </td></tr>
+<tr><td valign="TOP">
+  SUMRADOUT </td><td>   if not outputting radiance </td></tr>
+<tr><td valign="TOP">
+  SUMFLUXDIV</td><td>   if not outputting net flux convergence (heating rate) </td></tr>
+<tr><td valign="TOP">
+  SUMSHTERMS</td><td>   if not outputting SH terms (mean radiance/net flux) </td></tr>
+</table>
+Only eliminating DELSOURCE will save a significant fraction of memory.
+
+
+<P>
+<BR>
+Other array sizes are generally not too large and have been set large
+enough so that they seldom need to be changed:
+<table border=0 cellpadding=2 cellspacing=2>
+
+<tr> <th align=left> shdom.f</th> </tr>
+<tr><td valign="TOP">
+  MAXNCMU  </td><td>  array size for associate Legendre coefficients in SH/DO transforms </td></tr>
+<tr><td valign="TOP">
+  MAXNCPHI </td><td>  array size for Fourier coefficients in SH/DO transforms </td></tr>
+<tr><td valign="TOP">
+  MAXNBC   </td><td>  max number of grid points on either boundary (set to MAXIG/10) </td></tr>
+<tr><td valign="TOP">
+  MAXBCRAD </td><td>  array size for number of boundary radiances 
+               (for Lambertian surface MAXBCRAD<=2*MAXNBC, 
+                for general BRDF MAXBCRAD<=(2+NANG/2)*MAXNBC) </td></tr>
+<tr><td valign="TOP">
+  MAXSFCPTS </td><td> max number of point in regular grid of variable surface parameters </td></tr>
+<tr><td valign="TOP">
+  MAXSFCPARS</td><td> max number of surface parameters for variable sfc (includes temp) </td></tr>
+<tr><td valign="TOP">
+  MAXNXY    </td><td> max number of either X or Y points on base grid </td></tr>
+<tr><td valign="TOP">
+  MAXNZ     </td><td> max number of vertical levels for property & base grid and k-dist </td></tr>
+<tr><td valign="TOP">
+  MAXRADOUT </td><td> max number of output radiances </td></tr>
+<tr><td valign="TOP">
+  MAXOUT    </td><td> max number of output files </td></tr>
+<tr><td valign="TOP">
+  MAXPAR    </td><td> max number of output parameters input for an output file </td></tr>
+<tr><td valign="TOP">
+  MAXNG     </td><td> max number of "k's" in a single k-distribution. </td></tr>
+<tr><td valign="TOP">
+  MAXNMU    </td><td> max number of zenith angles </td></tr>
+<tr><td valign="TOP">
+  MAXNPHI   </td><td> max number of azimuth angles </td></tr>
+
+<tr> <th align=left> shdomsub1.f</th> </tr>
+<tr><td valign="TOP">
+  MAXNLM    </td><td> max number of spherical harmonic terms </td></tr>
+<tr><td valign="TOP">
+  MAXNMU    </td><td> max number of zenith angles </td></tr>
+<tr><td valign="TOP">
+  MAXNPHI   </td><td> max number of azimuth angles </td></tr>
+<tr><td valign="TOP">
+  MAXM      </td><td> max Fourier azimuthal mode (M) </td></tr>
+
+<tr> <th align=left> shdomsub2.f</th> </tr>
+<tr><td valign="TOP">
+  MAXNZ     </td><td>            </td></tr>
+<tr><td valign="TOP">
+  MAXNPHI   </td><td>            </td></tr>
+<tr><td valign="TOP">
+  MAXNLM    </td><td>            </td></tr>
+<tr><td valign="TOP">
+  MAXLEG    </td><td> max number of Legendre phase function terms </td></tr>
+<tr><td valign="TOP">
+  MAXPHASE  </td><td> max number of tabulated phase functions </td></tr>
+
+<tr> <th align=left> shdomsub3.f</th> </tr>
+<tr><td valign="TOP">
+  MAXOUT    </td><td> (for namelist subroutine)  </td></tr>
+<tr><td valign="TOP">
+  MAXPAR    </td><td>          </td></tr>
+</table>
+
+
+</BODY>
+</HTML>

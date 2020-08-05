@@ -1,0 +1,258 @@
+<HTML>
+<HEAD>
+<TITLE>CLOUDPRP</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>CLOUDPRP </H2>
+
+Cloudprp prepares SHDOM properties files for 3D cloud fields.  The cloud
+field is input with a 3D grid of liquid water content and (optionally)
+droplet effective radius.  A tabulated phase function property file for
+a particular wavelength is produced using Mie scattering from gamma
+distributions or lognormal distributions of cloud droplets. The cloud
+layer may occupy only part of the output domain, in which case the other
+height levels are specified.  A vertical profile of horizontally uniform
+aerosol scattering may be specified.  The aerosol properties (0.55 um
+extinction, effective radius, distribution width, and index of
+refraction at 0.55 um and the desired wavelenth) are input from a file
+as a function of height.  The aerosol optical properties are calculated
+with Mie theory and molecular Rayleigh scattering is included.
+<P>
+
+Compiling cloudprp:
+ <TT> f77 -O -o cloudprp  cloudprp.f mieindsub.f </TT>
+
+<P>
+There are two modes of operation to cloudprp.  One is for making a Mie
+scattering table of cloud optical properties.  The other mode is to use
+a Mie table to produce an SHDOM property file.  Because the Mie
+computations are time consuming it is useful to save these scattering
+tables.  A Mie table lists the scattering properties (extinction,
+single scattering albedo, Legendre series coefficients for the phase
+function) as a function of droplet effective radius for a particular
+wavelength and gamma distribution width parameter.  The table is
+made for a liquid water content of 1 g/m^3 and is easily scaled to
+other LWCs.
+
+    <H4>  Input Parameters </H4>
+
+<B> Making Mie Table: </B>
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+
+<tr><td valign="TOP">
+ MIEFLAG </td> <td> 'O' Output, for making the Mie table </td></tr>
+<tr><td valign="TOP">
+ MIEFILE </td> <td>  putput Mie scattering table file name </td></tr>
+<tr><td valign="TOP">
+ PARTTYPE </td> <td> particle type: W=water, I=ice, A=aerosol
+              if PARTTYPE='A' then the index of refraction is input,
+              otherwise tables for water and ice are used. </td></tr>
+<tr><td valign="TOP">
+ WAVELEN1 </td> <td> wavelength range (microns) for this band </td></tr>
+<tr><td valign="TOP">
+ WAVELEN2 </td> <td> for monochromatic choose WAVELEN1=WAVELEN2 </td></tr>
+<tr><td valign="TOP">
+ DISTFLAG </td> <td> 'G' for gamma distribution or 'L' for lognormal distribution </td></tr>
+<tr><td valign="TOP">
+ ALPHA    </td> <td> distribution shape parameter (either alpha in gamma distribution
+              or sigma in lognormal distribution).  Effective variance
+              = 1/(alpha+3) for gamma, exp(alpha^2)-1 for lognormal. </td></tr>
+<tr><td valign="TOP">
+ NRETANB  </td> <td> number of effective radii entries in Mie table </td></tr>
+<tr><td valign="TOP">
+ SRETAB   </td> <td> starting effective radius (micron) in Mie table </td></tr>
+<tr><td valign="TOP">
+ ERETAB   </td> <td> ending effective radius (micron) in Mie table </td></tr>
+<tr><td valign="TOP">
+ MAXTABLEG</td> <td> maximum Legendre series order for Mie table phase functions </td></tr>
+</table>
+
+<BR>
+
+<B> Making Property File: </B>
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+
+<tr><td valign="TOP">
+MIEFLAG  </td><td>   'I' Input, for reading the Mie table </td></tr>
+<tr><td valign="TOP">
+MIEFILE  </td><td>   input Mie scattering table file name </td></tr>
+<tr><td valign="TOP">
+PROPFILE </td><td>   output SHDOM property file name </td></tr>
+<tr><td valign="TOP">
+CLOUDFILE </td><td>  input cloud LWC/Reff file name </td></tr>
+<tr><td valign="TOP">
+DROPCONC </td><td>   droplet concentration (cm^-3) (used if effective radius not in file) </td></tr>
+<tr><td valign="TOP">
+RAYLCOEF </td><td>   molecular Rayleigh scattering coefficient (K/(km mb)) </td></tr>
+<tr><td valign="TOP">
+AEROFILE </td><td>   input aerosol property file (or NONE) </td></tr>
+<tr><td valign="TOP">
+AERODIST </td><td>   aerosol size distribution type ('G' for gamma, 'L' for lognormal) </td></tr>
+<tr><td valign="TOP">
+MAXOUTLEG</td><td>   maximum Legendre series order for property file </td></tr>
+<tr><td valign="TOP">
+NZO      </td><td>   number of extra height levels (in addition to those in cloud file) </td></tr>
+<tr><td valign="TOP">
+ZOTHER() </td><td>   heights (km) and temperatures (K) of other levels </td></tr>
+<tr><td valign="TOP">
+TEMPOTHER() </td><td>  </td></tr>
+</table>
+
+<P>
+
+Although the Mie calculations are done for a single wavelength, the 
+wavelength range for a band is input.  This is for performing a spectral
+integration across a band using a k-distribution for molecular
+absorption.  If a range of wavelengths are input then the central
+wavelength is chosen by a weighted average using a Planck function.
+For solar wavelengths (< 4 um) the Planck function is for a solar
+temperature (5800 K), while for longer wavelengths an atmospheric
+temperature (270 K) is used.  A weighted averaged is similarly done to
+define the band averaged index of refraction.  The PARTTYPE='A' option
+allow one to make Mie tables and property files with a user specified
+index of refraction, such as for dirty cloud droplets, aerosols, etc.
+<P>
+
+The gamma distribution of cloud droplet sizes is
+     n(r) = a r^alpha exp(-b*r)
+ where r is the droplet radius, and a, b, alpha specify the gamma
+distribution.  The number concentration of droplets is 
+ N = a Gamma(alpha+1)/ b^(alpha+1), where Gamma is the gamma function.
+The effective radius of the distribution is r_eff = (alpha+3)/b, while
+the effective variance is v_eff = 1/(alpha+3).  A typical value for 
+water clouds is v_eff=0.1 or alpha=7.  For ice clouds a typical value
+is alpha=1.  An exponential distribution is obtained with alpha=0.  
+A large value of alpha gives close to a monodisperse distribution.
+<P>
+
+The lognormal distribution of cloud droplet sizes is
+     n(r) = a/r exp( -[ln(r/r0)]^2 / (2*sigma^2) )
+ where r0 is the logarithmic mode of the distribution and sigma is the
+standard deviation of the log.  The number concentration of droplets is
+N = sqrt(2*pi)*sigma*a.  The effective radius of the distribution is
+r_eff = r0*exp(2.5*sigma^2) and the effective variance of the
+distribution is v_eff = exp(sigma^2)-1.  A common value for water clouds
+is sigma=.35, or v_eff=0.130.
+<P>
+
+The cloud optical properties depend on the index of refraction and the
+gamma distribution of cloud droplets.  The index of refraction of either
+water or ice is obtained from subroutines in the program and averaged
+over the wavelength range as described above.  The width parameter of
+the gamma distribution, alpha, is given in the Mie table.  The other
+parameters of the gamma distribution are determined from the cloud
+liquid water content and the effective radius.  These are either both
+specified in the cloud LWC file or determined from the LWC.  If only the
+LWC is in the cloud file then the droplet number concentration is
+assumed to be constant and the effective radius is calculated.
+<P>
+
+In order to save computing time, the integration over the droplet size
+distribution does not fully resolve the Mie scattering function. For
+large size parameters this may cause some small spurious wiggles on the
+phase function.  If these bother you, then change the spacing (DELX)
+in MAKE_MIE_TABLE.  Also the Mie code used does not determine if
+an integration point lands on a resonance spike, and so there is
+a small chance that this could effect the results in a minor
+way for nonabsorbing wavelengths.
+<P>
+
+The number of Legendre series terms needed for the phase function
+depends on the effective size parameter (x_eff = 2 pi r_eff/lambda) of
+the droplet size distribution.  For visible wavelengths more than 1000
+terms may be needed for a fully converged series.  For some radiative
+transfer applications (outputting only fluxes in solar or for any
+thermal radiative transfer) a truncation of the series may be desired.
+The MAXTABLEG and MAXOUTLEG input parameters allow one to control
+how many Legendre terms are output.
+<P>
+
+Rayleigh scattering coefficient:  The molecular scattering coefficient
+depends on the air density.  Hence for a particular solar wavelength
+band a coefficient (k) may be defined which gives the extinction from
+the air pressure (p) and temperature (T):  ext = k p/T.  The Rayleigh
+scattering coefficient input to cloudprp may be derived from the
+molecular Rayleigh scattering optical depth.  The Rayleigh optical depth
+at sea level as a function of wavelength (lambda in micron) is <BR>
+ &nbsp &nbsp tau = 0.0088*lambda**(-4.15+0.2*lambda) <BR>
+From this formula the cloudprp Rayleigh input coefficient is <BR>
+ &nbsp &nbsp  k = (2.97E-4 K mb^-1 km^-1) lambda**(-4.15+0.2*lambda)
+<P>
+
+Typically the high resolution cloud field occupies only small portion of
+the atmospheric profile and the other height levels are used to fill in
+the rest of the atmosphere. The other height levels should be chosen
+according to the needs of SHDOM, the aerosol profile, and the molecular
+absorption profile.  SHDOM needs some vertical resolution to resolve the
+radiance field.  If aerosols or molecular Rayleigh scattering are
+significant, then the other levels must exist in clear sky to put that
+scattering in the property file.  Similarly, if a k-distribution file is
+giving the molecular absorption, then other levels must cover the range
+where the absorption is significant. For example, stratospheric levels
+need to be included for ozone absorption in the visible.
+
+
+     <H4>   Cloud LWC File </H4>
+
+The cloud LWC file specifies the three-dimensional distribution of 
+cloud liquid water content (g/m^3) and (optionally) the droplet
+effective radius (micron).  There are thus two types of cloud LWC
+files: 1 parameter and 2 parameter files.  The cloud LWC file is
+an ascii text file with the following format;
+<PRE>
+   type         [1 or 2, for LWC only or LWC and Reff]
+   Nx Ny Nz     [number of X, Y, Z grid points]
+   delX delY    [X and Y grid spacing in km]
+   Z1 ... Zn    [heights of cloud levels in km]
+   T1 ... Tn    [temperatures in Kelvin]
+  IX IY IZ LWC        [for 1 parameter file, for each grid point]
+    . . .
+  IX IY IZ LWC Reff   [for 2 parameter file]
+    . . .
+</PRE>
+See the "les2y21.lwc" file in the distribution for an example cloud LWC file.
+
+
+ <H4>  Aerosol Property File  </H4>
+
+The aerosol property file specifies the (usually coarse) vertical
+distribution of aerosol properties.  Simply input 'NONE' for the aerosol
+file name if no aerosols are desired.  There must be at least two levels
+in the file.  The format is ascii text with the following columns:
+<PRE>
+   Height,  Extinction,  Eff. Radius,  alpha/sigma, Index of refraction
+            at 0.55 um                              at 0.55 um and wavelenth
+    (km)     (km^-1)      (micron)
+</PRE>
+
+The levels must be increasing in height.  The aerosol extinction and
+single scattering albedo are interpolated between the input levels. The
+aerosol input level closest to the property file level is chosen for the
+combined aerosol/Rayleigh phase function.  Property file heights outside
+the aerosol file range use the closest (first or last) aerosol level.
+The aerosol distribution width parameter is either "alpha" for a gamma
+distribution or "sigma" for a lognormal distribution (same as for the
+the cloud input described before).
+<P>
+  The index of refraction and effective radius of the aerosols depends
+on their composition (e.g. sea salt, mineral, sulfate), degree of
+hydration, and wavelength.
+<P>
+ An example aerosol file is given below (it has a total 0.55 micron
+optical depth of 0.4): 
+<PRE>
+   0.0   0.10   0.9  0.7   1.5 -0.01  1.5 -0.02
+   2.0   0.10   0.9  0.7   1.5 -0.01  1.5 -0.02
+   4.0   0.02   0.6  0.7   1.5 -0.01  1.5 -0.02
+  12.0   0.00   0.6  0.7   1.5 -0.01  1.5 -0.02
+</PRE>
+ Note that this calculation is for a more absorbing wavelength, for
+which the imaginary part of the index of refraction is larger than at
+0.55 microns.
+
+</BODY>
+</HTML>

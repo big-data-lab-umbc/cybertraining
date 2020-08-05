@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Property File Format </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Property File Format</H2>
+
+    The properties of the medium may be input in three different
+formats. 1) the standard format specifies the extinction, scattering
+albedo, temperature, and Legendre phase function expansion at every grid
+point; 2) the extinction only format only specifies extinction at every
+grid point, while the other quantities are given in the header part; and
+3) the tabulated phase function format specifies all properties except
+the phase function for each grid point, while many phase functions are
+tabulated in the header.  All file types are plain ascii and read by 
+Fortran free format (so most "lines" may be broken across lines).  With
+a small code change (commenting in calls to read_property_size_netcdf
+and read_properties_netcdf in shdom90.f90) the tabulated phase function
+format property file may be read in netcdf format.
+
+Note: Chi1 is 3 times the asymmetry parameter.
+<P>
+
+    The standard file format has two header lines: the first line has
+the size of the grid; the second line contains the X and Y grid
+spacing and the Z levels.  There is then one line per grid point
+giving the properties.  The format is as follows:
+ <PRE>
+    Nx  Ny  Nz
+    delX  delY  Z1  ...  Zn
+    IX IY IZ Temp Extinct Albedo NumL Chi1 . . . ChiL
+     . . . 
+ </PRE>
+where IX, IY, and IZ are the spatial indices (1,...,Nx, etc.), Temp is
+the grid point temperature in Kelvin, Extinct is the extinction in
+units inverse of the grid spacing units, Albedo is the single
+scattering albedo, NumL is the Legendre series degree, and Chi(n) are
+the coefficients of the Legendre expansion of the phase function.
+Chi1 is 3*g, where g is the asymmetry parameter.
+<P>
+
+    The extinction only format has five header lines: the first line
+must begin with 'E'; the second has the grid size; the third has the 
+grid spacing and Z levels; the fourth has the temperatures in Kelvin
+of the Z levels; the fifth has the single scattering albedo, the degree
+of the Legendre expansion of the phase function, and then the Legendre
+coefficients. There is one line for every grid point containing the
+grid point indices and the extinction; if the NY is 1 then only the
+X and Z indices are given.  The format is as follows:
+ <PRE>
+    E
+    Nx  Ny  Nz
+    delX  delY  Z1 ... Zn
+    T1 ... Tn
+    Albedo  NumL  Chi1 ...  ChiL
+    IX IZ Extinct   or   IX IY IZ Extinct
+      . . .
+ </PRE>
+
+<P>
+    The tabulated phase function format has a 4+NUMPHASE header lines,
+where NUMPHASE is the number of phase functions:  the first line must
+begin with 'T'; the second has the grid size; the third has the grid
+spacing and Z levels; the fourth has the number of phase functions;
+and the following "lines" have the phase functions containing the
+degree of the Legendre expansion and then the Legendre coefficients. 
+There is one line for every grid point containing the grid point 
+indices, the temperature (Kelvin), the extinction, scattering albedo,
+and phase function index (1 to NUMPHASE) to the table in the header.
+The format is as follows:
+ <PRE>
+    T
+    Nx  Ny  Nz
+    delX  delY  Z1 ... Zn
+    numphase
+    NumL  Chi1 ...  ChiL       (for each phase function)
+      . . . 
+    IX IY IZ  Temp Extinct Albedo  Iphase
+ </PRE>
+  The first Z level is the bottom surface and the last is the top
+surface.  The Legendre coefficients are normalized so that Chi0 (which
+is not listed) is always 1.  The Legendre coefficients do not actually
+need to be all on one line; in fact, propgen uses multiple lines for
+phase functions with more than 200 terms.
+
+</BODY>
+</HTML>

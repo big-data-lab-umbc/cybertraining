@@ -1,0 +1,125 @@
+<HTML>
+<HEAD>
+<TITLE>MAKE_MIE_TABLE</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>MAKE_MIE_TABLE </H2>
+
+Make_mie_table calculates the single scattering properties of gamma or
+lognormal distributions of spherical particles and outputs the results
+in a scattering table.  If the particle type is water or ice then an
+integration across the specified wavelength band may be performed.  If
+an aerosol particle type is chosen then the index of refraction of the
+aerosol is specified.
+<P>
+
+For water or ice particles an integration across the wavelength range
+may be done.  In this case a series of Mie calculations are performed at
+a specified wavelength spacing using the correct index of refraction for
+each wavelength.  The alternative is to use the Planck function averaged
+index of refraction and central wavelength, which takes less computation
+but may be less accurate (depending on the spectral band width).  For
+solar wavelengths (< 3 um) the Planck function is for a solar
+temperature (5800 K), for longwave wavelengths (> 5 um) the Planck
+function is for an atmospheric temperature (270 K), while between 3 and
+5 um a straight average is used.
+<P>
+
+If an aerosol particle type is chosen then the particle bulk density of
+the aerosol is specified.  The density is needed because the output
+scattering table extinction is normalized for a mass content of 1 g/m^3.
+<P>
+
+The gamma distribution of cloud droplet sizes is
+     n(r) = a r^alpha exp(-b*r)
+ where r is the droplet radius, and a, b, alpha specify the gamma
+distribution.  The number concentration of droplets is 
+ N = a Gamma(alpha+1)/ b^(alpha+1), where Gamma is the gamma function.
+The effective radius of the distribution is r_eff = (alpha+3)/b, while
+the effective variance is v_eff = 1/(alpha+3).  A typical value for 
+water clouds is v_eff=0.1 or alpha=7.  For ice clouds a typical value is
+alpha=1 or 2.  An exponential distribution is obtained with alpha=0.  A
+large value of alpha gives close to a monodisperse distribution.
+<P>
+
+The lognormal distribution of cloud droplet sizes is
+     n(r) = a/r exp( -[ln(r/r0)]^2 / (2*sigma^2) )
+ where r0 is the logarithmic mode of the distribution and sigma is the
+standard deviation of the log.  The number concentration of droplets is
+N = sqrt(2*pi)*sigma*a.  The effective radius of the distribution is
+r_eff = r0*exp(2.5*sigma^2) and the effective variance of the
+distribution is v_eff = exp(sigma^2)-1.  A common value for water clouds
+is sigma=.35, or v_eff=0.130, and a common value for aerosol distributions
+is sigma=0.7.
+<P>
+
+The maximum radius of the distribution is specified by the user because
+it is the critical determinant of the Mie calculation computer time.
+There are often microphysical reasons for truncating the theoretical
+size distribution; for example, one might say that the cloud droplet
+mode ends at a radius of 50 microns.  For a narrow gamma distribution
+(alpha=7) of cloud droplets, a maximum radius of only twice the largest
+effective radius gives virtually the same optical properties as the 
+untruncated gamma distribution.  For a wide lognormal distribution, as
+might be used for an aerosol distribution, a much larger maximum radius
+relative to the largest effective radius would be required if no
+truncation was desired.  If there is truncation make_mie_table uses an
+iterative procedure to adjust the size distribution modal radius to
+achieve the desired effective radius.  Thus one can be assured that the
+size distributions have the effective radii reported in the output
+scattering table even if there is truncation of the theoretical
+distribution.  The number and spacing of the integration steps over the
+size distribution is controlled by the GET_NSIZE and GET_SIZES
+subroutines.  The default formula is DELX = max(0.01,0.03*X**0.5),
+where X is the size parameter (2*pi*r/lambda, lambda=wavelength)
+and DELX is the integration step.  This integration spacing is
+adequate for most purposes, but can be easily changed if higher
+accuracy is sought.
+<P>
+
+    <H4>  Input Parameters </H4>
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+
+<tr><td valign="TOP">
+WAVELEN1   </td><td> wavelength range (microns) for this band </td></tr>
+<tr><td valign="TOP">
+WAVELEN2      </td><td> for monochromatic choose WAVELEN1=WAVELEN2 </td></tr>
+<tr><td valign="TOP">
+PARTYPE    </td><td> particle type: W=water, I=ice, A=aerosol
+              if PARTTYPE='A' then the index of refraction is input,
+              otherwise tables for water and ice index are used. </td></tr>
+<tr><td valign="TOP">
+AVGFLAG    </td><td> 'A' for spectral average over the wavelength range (for
+              PARTYPE='W' or 'I'), 'C' to use the central wavelength. </td></tr>
+<tr><td valign="TOP">
+DELTAWAVE  </td><td> wavelength interval for averaging (micron) </td></tr>
+<tr><td valign="TOP">
+RINDEX     </td><td> aerosol complex index of refraction (negative imaginary part) </td></tr>
+<tr><td valign="TOP">
+PARDENS    </td><td> aerosol particle bulk density (g/cm^3) </td></tr>
+<tr><td valign="TOP">
+DISTFLAG   </td><td> 'G' for gamma distribution or 'L' for lognormal distribution </td></tr>
+<tr><td valign="TOP">
+ALPHA      </td><td> distribution shape parameter (either alpha in gamma distribution
+              or sigma in lognormal distribution).  Effective variance
+              = 1/(alpha+3) for gamma, exp(alpha^2)-1 for lognormal. </td></tr>
+<tr><td valign="TOP">
+NRETANB    </td><td> number of effective radii entries in Mie table </td></tr>
+<tr><td valign="TOP">
+SRETAB     </td><td> starting effective radius (micron) in Mie table </td></tr>
+<tr><td valign="TOP">
+ERETAB     </td><td> ending effective radius (micron) in Mie table </td></tr>
+<tr><td valign="TOP">
+MAXRADIUS  </td><td> maxium particle radius in size distribution (micron) </td></tr>
+<tr><td valign="TOP">
+MIEFILE    </td><td> output Mie scattering table file name </td></tr>
+</table>
+
+<P>
+
+</BODY>
+</HTML>

@@ -1,0 +1,214 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: List of Variables</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: List of Variables</H2>
+
+<PRE>
+The following is a list of important variables.
+
+  Variables       Description/Comments
+
+        First the variables used in the adaptive cell structure:
+NPTS           total number of grid points
+NCELLS         total number of cells
+GRIDPOS(3,IP)  x,y,z coordinate values of grid point locations
+GRIDPTR(8,IC)  pointer to 8 grid points belonging to a cell.
+                 Order of pointers is based on binary digits zyx:
+                 IOCT = 1 + BITX + 2*BITY + 4*BITZ, where 
+                 BITc is 0 for negative side and 1 for positive side.
+NEIGHPTR(6,IC) pointer to 6 neighboring cells of a cell.
+                 Order of pointers are -X,+X,-Y,+Y,-Z,+Z (1-6).
+                 Is 0 if there is no neighbor cell (boundary).
+                 Is positive if there is just one cell across face
+                 of current cell (unique neighbor).  Is negative
+                 (-index) if there is more than one cell across 
+                 the face of current cell.  In this case the
+                 cell pointed to is the parent cell that has a 
+                 has same or larger face adjoining current cell.
+TREEPTR(2,IC)  pointer to parent and children cells in tree structure.
+                 First is pointer to parent cell, 0 for a base cell.
+                 Second is pointer to first of the two children cells.
+                 This pointer is 0 if there are no children cells.
+                 The children cells are in successive order, with
+                 the negative side first.  See CELLFLAGS for direction
+                 of division of split.
+CELLFLAGS(IC)  a collection of binary flags for the cells:
+                  bit  For bit set
+                   0  Do independent pixel for X
+                   1  Do independent pixel for Y
+                   2,3 Direction cell is split (0=no split, 1=X, 2=Y, 3=Z)
+
+        Input variables: 
+PROPFILE        name of the input medium property file 
+SFCFILE         name of the input surface property file (or NONE)
+CKDFILE         name of the input correlated k-distribution file (or NONE)
+INSAVEFILE      name of the input binary save file (or NONE) 
+OUTSAVEFILE     name of the output binary save file (or NONE) 
+NX, NY, NZ      base grid size in X, Y and Z
+NMU, NPHI       number of discrete ordinates covering -1<mu<1 and 0<phi<2pi 
+BCFLAG          bit flags for open boundary conditions (also used for 
+                  multiple processors)
+IPFLAG          bit flags for independent pixel mode: 
+DELTAM          T (true) for delta-M scaling of medium and TMS method 
+GRIDTYPE        E for even Z base grid, P for Z base grid from property file
+SRCTYPE         'S' for solar source, 'T' for thermal source, 'B' for both
+SOLARFLUX       top of medium solar flux on a horizontal surface (any units) 
+SOLARMU         cosine of the solar zenith angle
+SOLARAZ         solar beam azimuthal angle; in radians for use in code.
+SKYRAD          isotropic diffuse radiance or Tb incident from above 
+GNDALBEDO       bottom surface Lambertian albedo 
+GNDTEMP         ground temperature in Kelvin 
+UNITS           'R' for radiance units (W/m^2 ster), 'T' for Rayleigh-Jeans
+WAVELEN         wavelength in microns for 'R' units 
+WAVENO(2)       wavenumber range (cm^-1) for correlated k-distribution.
+ACCELFLAG       T (true) to do the sequence acceleration. 
+SOLACC          solution accuracy - tolerance for solution criterion
+MAXITER         maximum number of iterations allowed 
+SPLITACC        cell splitting accuracy
+SHACC           adaptive spherical harmonic truncation accuracy
+NUMOUT          number of output files (different types usually) 
+OUTTYPES(*)     output file type (R,F,H,S,J,M)
+OUTPARMS(*)     parameters for output mode
+OUTFILES(*)     output file name 
+
+
+ML,MM           The maximum L and M of the spherical harmonic truncation.
+                  ML = NMU-1, MM = INT(NPHI/2)-1
+NCS             A flag indicating the azimuthal modes used: 
+                  1 for only cosine modes (0<=m<=MM),
+                  2 for sine and cosine modes (-MM<=m<=MM).
+NLM             The number of spherical harmonic terms,
+                  for NCS=1  NLM=(MM+1)*(ML+1)-(MM*(MM+1))/2
+                  for NCS=2  NLM=(2*MM+1)*(ML+1)-MM*(MM+1)
+NLEG            The number of Legendre series phase function terms used in
+                  the solution procedure.
+NMU             The number of Gaussian quadrature discrete ordinates in mu.
+                  This is forced to be even for several reasons.
+NPHI            The maximum number of evenly spaced azimuthal angles.  This is
+                  specified for a full 2pi, though if NCS=1 actually only
+                  NPHI/2+1 azimuths from 0 to pi are used.  Forced to be >0.
+NPHI0MAX        The maximum number of azimuth angles actually used;
+                  for NCS=1 (cosine modes only) NPHI0=INT((NPHI+2)/2),
+                  otherwise NPHI0=NPHI.
+NPHI0(NMU)      The number of azimuth angles actually used for each zenith 
+                  angle (for the reduced gaussian set less azimuthal angles
+                  are used near zenith and nadir).
+
+NPX,NPY,NPZ     Size of the input property arrays.
+                  Need not be same as NX,NY,NZ
+NX, NY, NZ      Size in grid cells of the internal base grid.
+
+DELX,DELY       The horizontal grid spacing of the property arrays.
+ZLEVELS         The input Z levels from the property file.
+XGRID,YGRID     The grid locations for each dimension. To facilitate the
+ZGRID             periodic horizontal boundaries, there are NX+1 values in
+                  XGRID, NY+1 in YGRID, NZ values in ZGRID.  Currently the
+                  grid locations are evenly spaced in X and Y.
+
+            The variable for the input (variable) surface properties. 
+SFCTYPE         The surface type (two characters) is set according to
+                  whether there is a surface file and its format:
+                  'FL' fixed Lambertian; 'VL' variable Lambertian,
+                  'VF' variable Fresnel; 'VR' variable RPV.
+NXSFC,NYSFC     Size of surface arrays (internally NXSFC+1 by NYSFC+1)
+DELXSFC,DELYSFC Spacing of regular surface arrays
+SFCPARMS(NSFCPAR,*)  Surface parmeters on regular sfc grid (temperature first)
+NSFCPAR         Number of surface parameters (2 for Lambertian [temp,albedo])
+SFCGRIDPARMS(NSFCPAR,*)  Surface parameters interpolated to boundary grid points
+                  first one is Planck function from interped temperature.
+NTOPPTS,NBOTPTS Number of boundary grid points at top and bottom
+BCPTR(*,2)      Pointers to grid points that are on top (1) and bottom (2)
+BCRAD(*)        Boundary radiances: first NTOPPTS are isotropic top radiances;
+                next NBOTPTS are upwelling bottom radiances; for general BRDF
+                the next NBOTPTS*NANG/2 are downwelling bottom radiances at
+                discrete ordinates (for doing integral over incident radiance).
+
+            The arrays with the input property fields. 
+TEMPP,EXTINCTP  Temperature (K), extinction (km^-1), 
+ALBEDOP         Single scattering albedo
+LEGENP          Phase function: Chi(1)...Chi(NLEG) are in LEGENP(1:NLEG,..).
+IPHASEP         Pointer to phase functions in LEGENP for tabulated phase funcs
+EXTDIRP         Extinction field (perhaps scaled) for direct beam computation
+
+            The arrays with the internal/adaptive grid fields. 
+EXTINCT         Extinction field (scaled if delta-M)
+ALBEDO          Single scattering albedo (scaled if delta-M)
+TEMP            Temperature
+PLANCK          Planck function times (1-ALBEDO) for thermal sources
+DIRFLUX         For solar sources, the direct beam flux F*exp(-tau)
+                  (F=solar flux, tau=optical path to sun).
+LEGEN(0:NLEG,)  The phase function coefficients Chi(0)...Chi(NLEG) 
+                  are in LEGEN(0:NLEG,) = Chi(l)/(2*l+1), e.g. LEGEN(0,)=1.
+IPHASE          Pointer to phase functions in LEGEN for tabulated phase funcs
+
+              Correlated k-distribution arrays:
+DELG(NG)        k-distribution weights
+ZCKD            Heights read in from CKD file
+KABS            Absorption coefficients (km^-1) for all k's and CKD heights
+GASABS          Absorption coefficients for current k and CKD heights
+
+          Spherical harmonic arrays (the three biggies):
+              See YLMALL routine for the order of the SH terms.
+              These three arrays have adaptive SH terms, and thus
+              require pointers to index into them. The pointers (e.g. SHPTR)
+              point to the element before the first SH term of a grid
+              cell; e.g. SHPTR(I)+1 points to the first SH term of the
+              I'th grid point in SOURCE, and SHPTR(I+1) points to the
+              last SH term of the I'th grid point.
+SOURCE(*)       Spherical harmonic terms of the source function
+SHPTR(NPTS)     Pointer for SOURCE
+DELSOURCE(*)    The difference between successive source functions in iteration
+OSHPTR(NPTS)    Pointer for DELSOURCE
+RADIANCE(*)     Spherical harmonic terms of the radiance field
+RSHPTR(NPTS)    Pointer for RADIANCE
+
+WORK            Work array for path integration; radiance field, Nazimuth*Npts
+WORK1/SWEEPORD  Work array for path integration; grid point sweeping order
+WORK2/GRIDRAD   Work array for path integration; single angle radiance
+
+            Output arrays:
+FLUXES(2,)      The two hemispheric diffuse fluxes for each grid point 
+                  computed from the discrete ordinate radiance field.
+SUMFLUXES       Running k-distribution sum array for fluxes
+SUMDIRFLUX      Sum array for direct beam flux
+SUMFLUXDIV      Sum array for net flux divergence
+SUMSHTERMS      Sum array for spherical harmonic output
+SUMRADOUT       Sum array for radiance output (actual size needed is unknown)
+
+MU(NMU)           The Gaussian quadrature cosine zenith angles (mu<0 first)
+WTMU(NMU)         The Gaussian integration weights
+WTDO(NMU*NPHI0)   Discrete ordinate integration weights
+PHI(NMU*NPHI0)    Discrete azimuths, evenly spaced for each mu
+FFTFLAG(NMU)      Logical array, true to do FFT instead of DFT with CPHIn
+CMU1(NLM,NMU)     The spherical harmonic/discrete ordinate transform
+CMU2(NMU,NLM)     coefficients. The CMUn are for the zenith angle transform,
+CPHI1(-16:16,32,NMU) and the CPHIn are for the azimuthal angle transforms.
+CPHI2(32,-16:16,NMU)  The 1 coefficients are for the SH to DO transform, and
+                   the 2 coefficients (which have the integrations weights)
+                   are for the DO to SH transform.
+YLMSUN(NLM)       The spherical harmonic terms for the solar beam direction,
+                    which are for computing the single scattering source.
+FIXSH             Logical, if true than adaptive SH truncation is fixed
+OUTOFMEM          Logical, true if out of memory for splitting cells
+CURSPLITACC       Splitting accuracy used at a particular iteration
+SPLITCRIT         Splitting criterion currently achieved
+STARTADAPTSOL, ENDADAPTSOL  Starting and ending solution criterion for splitting
+
+TRANSMIN          Transmission cutoff for back tracing through cells
+
+INRADFLAG         Logical variable, true if there is an input save file
+NEWGRIDFLAG       Logical, true to make new grids, otherwise use last ones
+BASEOUT           Logical, true to initialize/output with base grid for k-dist
+ITER              The number of iterations done for one SOLVE_RTE
+TOTITER           The total number of iterations done (over a k-dist)
+SOLCRIT           The final solution criterion achieved
+NRAD              Total number of output radiance locations/angles
+
+</PRE>
+
+</BODY>
+</HTML>

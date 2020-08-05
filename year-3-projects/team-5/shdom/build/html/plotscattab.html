@@ -1,0 +1,58 @@
+<HTML>
+<HEAD>
+<TITLE>PLOTSCATTAB</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>PLOTSCATTAB</H2>
+
+Plotscattab calculates phase functions as a function of scattering angle
+from a scattering table produced by make_mie_table or make_ice_table or
+from the tabulated phase functions in a property file.  The scattering
+tables and property files stores the phase function as a Legendre
+series, so plotscattab sums the Legendre series for a specified number
+of discrete scattering angles.  Several phase function for different
+effective radius may be selected for conversion.  A graphing program can
+be used to plot the output of plotscattab.  
+
+            <H4> Plotting file format  </H4>
+
+The output file from plotmietab contains a three line header and then
+the phase functions in separate columns.  The phase function output
+format is:
+ <PRE>
+ !  Scattering table phase functions: water_w164c.scat 
+ ! Angle cos(angle)  Phase functions for effective radii (um) 
+ !                      5.00       10.00       15.00       20.00
+     0.00  1.000000  0.2353E+03  0.8809E+03  0.1945E+04  0.3422E+04
+      . . .
+ </PRE>
+
+
+<P>
+
+    <H4>  Input Parameters </H4>
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+<tr><td valign="TOP">
+FILETYPE   </td><td> 'S'=scattering table input, 'P'=SHDOM property file input </td></tr>
+<tr><td valign="TOP">
+INFILE     </td><td> scattering table or property file name </td></tr>
+<tr><td valign="TOP">
+NANGLE     </td><td> number of output angles (e.g. 181 for output at every degree);
+              NANGLE<0 allows the user the input ABS(NANGLE) angles </td></tr>
+<tr><td valign="TOP">
+NOUT       </td><td> number of output phase functions </td></tr>
+<tr><td valign="TOP">
+OUTREFF()  </td><td> effective radii (micron) list or 
+              tabulated phase function numbers (1,2,...) </td></tr>
+<tr><td valign="TOP">
+PLOTFILE   </td><td> plotting output file name </td></tr>
+</table>
+
+<P>
+
+</BODY>
+</HTML>
