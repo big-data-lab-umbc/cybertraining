@@ -1,0 +1,109 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Accuracy Issues</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Accuracy Issues</H2>
+
+   Like all numerical solutions to the radiative transfer equation, the 
+operation of SHDOM entails a tradeoff between computational speed and 
+accuracy.  One difference between 1D and 3D radiative transfer is that
+it is very expensive to get very high accuracy (better than 1%) in 3D.
+This is a result of the five dimensional nature of the problem. This is
+also the case for Monte Carlo methods, but it is worse for explicit 
+radiative transfer methods.  The strategy issues for running SHDOM
+involve how to achieve a required accuracy in a minimum CPU time. 
+<P>
+
+    The grid spacing needed is determined by some assumptions of SHDOM:
+1) the variation in the extinction and the product of the source
+function and extinction across a grid cell is linear, 2) the source
+function across a grid face is accurately interpolated with the bilinear
+method, and 3) the radiance across a grid face is accurately
+interpolated with the bilinear method.   The first and second
+assumptions should be satisfied by the source function based adaptive
+cell splitting algorithm, and also would be by having the optical depth
+across the grid cells small compared to one.  The third assumption is
+satisfied by not using too coarse a base grid, and probably only matters
+as it affects the computation of the source function.  It can make sense
+to have a coarse base grid where there is little scattering (clear sky),
+but then the output fluxes in those regions will be of low accuracy,
+though the output radiances (computed by tracing back) will be good.
+Because the accuracy can be compromised if the optical depth across a
+grid cell is too large, a warning is given if the property grid has
+cells with optical depth larger than 2. It is the internal grid that
+matters, but most people have the same grid so the check is done there. 
+There are pathological cases in which a completely erroneous solar
+radiative transfer solution can occur if the optical depth across the
+cloud top grid cell is very large.
+<P>
+
+    The accuracy is also determined by the angular resolution, specified
+by the number of discrete ordinates (NMU and NPHI). To a lesser degree
+the adaptive spherical harmonic truncation parameter SHACC also
+determines the angular resolution.  Most of the benefit from the
+adaptive truncation occurs for low values of SHACC, so it is recommended
+to keep this parameter small.  A value of SHACC=0 still gives the
+benefit of not allocating source function spherical harmonic terms where
+there is no scattering.  Then NMU and NPHI will determine the angular
+resolution.  The angular resolution needed depends on the desired
+output: for solar beam problems, net flux convergence (heating rates)
+requires the least, followed by hemispheric fluxes, and then radiances. 
+For heating rates Nmu=8, Nphi=16 is enough, for hemispheric fluxes
+Nmu=8, Nphi=16 is often adequate, and radiances may need Nmu=16,
+Nphi=32 or more depending on the phase function.
+<P>
+
+    Choosing the cell splitting accuracy: Remember that the adaptive 
+parameters are in absolute units, not relative!  The actual accuracy is
+not linearly related to the cell splitting accuracy.  The cell splitting
+accuracy usually should be set substantially higher than the desired
+absolute flux accuracy.  Look at the examples in the journal paper
+for guidance.
+<P>
+
+   The only sure way to know how to set the spatial and angular
+resolution is to test how the desired solution behaves with increasing
+resolution, or make selected comparisons with an independent radiative
+transfer method.  It is not useful to increase the angular and spatial
+accuracy much beyond one another.  Tests have shown that the accuracy is
+not controlled by the cell splitting accuracy alone; both the base grid
+(NX,NY,NZ) and the splitting accuracy (SPLITACC) have to be considered. 
+Thus, setting the splitting accuracy so small that there are many more 
+adaptive grid points than base grid points, will probably not achieve
+any higher accuracy.
+ See the <A HREF="http://nit.colorado.edu/~evans/shdom/shdomacc.html"
+target=right> convergence examples </A> on the SHDOM Web site and
+refer to the journal article.
+<P>
+
+    Unlike for plane-parallel situations, the delta-M method does not
+assure high accuracy for downwelling solar flux in 2D and 3D as it does
+for 1D, thus the distribution of downwelling solar flux may not be
+accurate for highly peaked phase functions unless high angular
+resolution is used.  This is because in 3D, sharp variations in the
+extinction field mean that the downwelling solar flux is not averaged
+over all angles in the same way as for a uniform medium. This limitation
+appears to not affect upwelling flux, upwelling radiance, or heating
+rates.
+<P>
+
+    Because of the thresholding nature of the cell splitting and the
+spherical harmonic truncation, very small changes in the inputs can
+amplify into larger changes in the output results.  For example, running
+the same case on different machines can lead to noticeably different
+results.  These variations, however, should be within the overall
+accuracy of the results governed by the angular and spatial resolution.
+<P>
+
+    Upwelling hemispheric fluxes are slightly more accurately computed
+by using the double Gaussian quadrature discrete ordinate set.  This is
+choosen by setting ORDINATESET=3 in SOLVE_RTE.  With this option,
+radiances, heating rates, and net fluxes may be slightly less accurate.
+
+
+
+</BODY>
+</HTML>

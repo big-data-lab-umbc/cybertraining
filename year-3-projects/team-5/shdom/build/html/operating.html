@@ -1,0 +1,100 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Operating Strategy</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+
+
+<H2>SHDOM: Detailed Method of Operation</H2>
+
+See the journal article: <BR>
+  Evans, K. F., 1998: The spherical harmonic discrete ordinate method
+  for three-dimensional atmospheric radiative transfer.
+  J. Atmos. Sci., 55, 429-446. <BR>
+A Postscript copy of the final accepted draft is available from the
+ <A HREF="http://nit.colorado.edu/~evans/shdom.html" target=right>
+   SHDOM Web site </A>.
+
+<BR>
+<P>
+
+<H2>SHDOM: Operating Strategy</H2>
+
+    The first step is to compile the code.  A makefile is provided, with
+options to compile with or without MPI (for multiple processors) and
+with or without the netcdf library.  SHDOM was written in Fortran 77
+with common extensions.  Later a Fortran 90  main program, shdom90.f90,
+was written to replace the Fortran 77 driver, shdom.f.  The Fortran 90
+version uses allocatable arrays and frees the user from having to set
+most of the parameters controlling the array sizes.  
+<P>
+
+    While a few algorithm and coding bugs may be left in the code, the
+most common source of errors is incorrect input.  Be sure to check the
+input parameters against the documentation and the USER_INPUT routine.
+The correctness of the input property file format can be found by using
+the 'M' - medium property output option.  There are routines that
+check the input parameters and property file for validity and issue
+warnings for common mistakes.
+<P>
+    Conservation of energy can be used as a check for conservatively
+scattering medium, but remember that the multiple reflections between 
+the surface and medium will introduce "extra" flux.  The collimated 
+(solar) flux input parameter is the flux on a horizontal surface 
+(rather than the flux perpendicular to the beam), so for conservative 
+scattering and no surface reflection the reflected plus transmitted 
+flux over the domain should equal this parameter.
+<P>
+    The delta-M scaling procedure is very useful for reducing the
+angular resolution needed.  It is generally used for collimated (solar)
+source problems.  One should remember that the delta-M scaling procedure
+changes the extinction, single scattering albedo, and Legendre phase
+function fields, as can be seen with the medium output option.  This
+means that the direct solar flux is increased with delta-M scaling and
+must be added to the diffuse transmitted flux for meaningful results.
+<P>
+    For putting in the rest of the atmosphere: a coarse grid outside the
+cloud region works because the rest of the atmosphere does not interact
+much with the cloud layer (little reflection back to the cloud layer).
+The fluxes, which depend on the cell-to-cell discrete ordinate
+integration, will not be as reliable above the cloud level.  The
+radiances, however, which are computed by integrating the source
+function back all the way to the boundary will be fine at any level.
+
+<P>
+
+         <H3> Output during Iterations </H3>
+
+    During the iterations some useful information is output to stdout.
+Six terms are output on a line each iteration:
+ <OL>
+  <LI> Iterations, 
+  <LI> Log10(solution criterion),
+  <LI> Cell splitting criterion,  
+  <LI> Number of grid points,
+  <LI> Average number of SH terms, 
+  <LI> Ratio of number of SH terms to total possible
+ </OL>
+
+    Using these parameters you can track the convergence towards the
+solution and the behavior of the adaptive grid process.  As the current
+cell splitting accuracy parameter is reduced the number of grid points
+increases and the cell splitting criterion decreases. The cell splitting
+criterion is the maximum over the whole medium.  The adaptive spherical
+harmonic truncation may also be monitored with the average number of SH
+terms.
+<P>
+    The solution criterion often does not converge monotonically.  When
+the cell splitting accuracy parameter is lowered and many adaptive cells
+are created the solution criterion typically increases.  The sequence
+acceleration method may cause the solution criterion to increase at a
+particular step, though the overall convergence is usually speeded.  The
+adaptive spherical harmonic truncation (parameter SHACC) may also
+interfer with a smooth convergence.  If you have trouble with
+convergence try adusting one of these parameters (SPLITACC, SHACC,
+ACCEL).
+
+</BODY>
+</HTML>

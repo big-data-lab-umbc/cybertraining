@@ -1,0 +1,55 @@
+<HTML>
+<HEAD>
+<TITLE>PLOTMIETAB </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>PLOTMIETAB </H2>
+
+Plotmietab calculates phase functions as a function of scattering angle
+from a Mie table produced by cloudprp.  The cloudprp Mie table stores
+the phase function as a Legendre series, so plotmietab sums the Legendre
+series for number of discrete scattering angles.  Several phase function
+for different effective radius may be selected for conversion by plotmietab.
+A graphing program may plot the output of plotmietab.  This is useful
+for understanding the role the phase function plays in radiative transfer,
+checking that the Legendre series are not truncated too much, etc.
+<P>
+
+   <H4> Input Parameters </H4>
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+
+<tr><td valign="TOP">
+MIEFILE  </td><td> Mie scattering table file name (produced by cloudprp) </td></tr>
+<tr><td valign="TOP">
+NANGLE   </td><td> Number of output angles (e.g. 181 for output at every degree)
+              NANGLE<0 allows the user the input ABS(NANGLE) angles </td></tr>
+<tr><td valign="TOP">
+NOUTREFF </td><td> Number of output effective radii </td></tr>
+<tr><td valign="TOP">
+OUTREFF()</td><td> The effective radii (micron) list </td></tr>
+<tr><td valign="TOP">
+PLOTFILE </td><td> Plotting output file name </td></tr>
+</table>
+
+<P>
+
+      <H4> Plotting file format </H4>
+
+The output file from plotmietab contains an eight line header and then
+the phase functions in separate columns.  The header (each line prefaced
+with !) has information about the Mie table.  The phase function output
+format is
+<PRE>
+! Angle  cos(angle)  Phase functions for effective radii (um)
+!                      10.00       20.00
+    0.00  1.000000  0.8701E+03  0.3384E+04
+     . . .
+</PRE>
+
+
+</BODY>
+</HTML>

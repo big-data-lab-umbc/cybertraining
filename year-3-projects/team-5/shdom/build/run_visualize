@@ -1,0 +1,197 @@
+#!/bin/csh
+#   Script for demonstrating visualization mode output of SHDOM.
+# Uses the stratocumulus cloud from phase 2 of the I3RC.
+# Warning: the SHDOM runs are CPU intensive (20 minutes for the SHDOM
+# solution and 147 minutes for the 100 frame camera visualization on
+# a 1.1 GHz Pentium 3).
+# The PDS images may be viewed with "xv".  The PDS images from the 100
+# frame visualization may be converted to JPEG files with the IDL program 
+# pdstojpeg.pro and animated with the IDL program animatejpeg.pro.
+set AWK=awk   # use nawk on SGI and Sun
+
+
+set MakeMieTable=0          # Set each of these to 1 in turn to run the 
+set MakePropertyFile=0      #   sections of the script.
+set RunSHDOMsolve=0
+set SingleFrames=0
+set RunCameraVisual=0
+
+set basefile=stcu067
+set prpfile=${basefile}.prp
+set savefile=${basefile}a.bin
+set outbase=${basefile}a
+
+set wavelen=0.67
+set wavename=067
+
+
+
+if ($MakeMieTable) then
+  #  Makes the Mie scattering table for spherical water droplets for
+  # gamma size distributions with a range of effective radius. 
+  set outfile = "water_w${wavename}c.scat"
+  set partype = "W"                # W for water
+  set distflag=G                   # G=gamma, L=lognormal size distribution
+  set alpha = 7                    # gamma dist shape parameter
+  set Nretab=50                    # number of effective radius in table
+  set Sretab=0.5; set Eretab=25    # starting, ending effective radius (micron)
+  set maxradius=75
+  set avgflag=C                    #  C for using central wavelength
+
+  put "$wavelen $wavelen" $partype $avgflag $distflag $alpha \
+      "$Nretab $Sretab $Eretab" $maxradius $outfile | make_mie_table
+  exit
+endif
+
+
+
+if ($MakePropertyFile) then
+  # Runs propgen to make the SHDOM optical property file from the 
+  # old type 2 LWC file for the 64x64x16 stratocumulus LES field.
+  # Adds in six other levels.
+
+  set lwcfile=les_stcu.lwc
+  set scattable=water_w${wavename}c.scat
+  set maxnewphase=100
+  set asymtol=0.01   
+  set fracphasetol=0.1
+  if ($wavename == '067') then
+    set raylcoef=0.00148
+  endif
+  set Nzother=6
+  set ZTother=(0.0 286.3  0.200 285.1  0.4125 283.8  0.8375 287.0  \
+               5.0 260  13.0 210)
+
+  put 1 $scattable 1 $lwcfile \
+      $maxnewphase $asymtol $fracphasetol $raylcoef \
+      $Nzother $ZTother $prpfile  | propgen
+endif
+
+
+
+#   Set SHDOM parameters: 
+set Nmu=8                 # number of zenith angles in both hemispheres
+set Nphi=16               # number of azimuth angles
+set mu0=0.50              # solar cosine zenith angle
+set phi0=0.0              # solar beam azimuth (degrees)
+set flux0=1.0             # solar flux (relative)
+set sfcalb=0.05           # surface Lambertian albedo
+set IPflag=0              # independent pixel flag (0 = 3D, 3 = IP)
+set BCflag=0              # horizontal boundary conditions (0 = periodic)
+set deltaM=T              # use delta-M scaling for solar problems
+set splitacc=0.10         # adaptive grid cell splitting accuracy
+set shacc=0.003           # adaptive spherical harmonic accuracy
+set solacc=1.0E-4         # solution accuracy
+set accel=F               # solution acceleration flag
+set maxiter=100           # maximum number of iterations
+
+set Nx=`$AWK 'BEGIN {getline; getline; print $1;}' $prpfile`
+set Ny=`$AWK 'BEGIN {getline; getline; print $2;}' $prpfile`
+set Nz=`$AWK 'BEGIN {getline; getline; print $3;}' $prpfile`
+
+
+
+if ($RunSHDOMsolve) then
+  # Run SHDOM to perform the solution iterations and store the SHDOM
+  #  state in a binary save file.
+
+  put Visualize $prpfile NONE NONE NONE $savefile "$Nx $Ny $Nz" "$Nmu $Nphi"\
+      $BCflag $IPflag $deltaM P S "$flux0 $mu0 $phi0" 0.0 $sfcalb $wavelen \
+      "$splitacc $shacc" "$accel $solacc $maxiter" 0 \
+      NONE 120 2.2 0.6 1.5 | shdom90
+endif
+
+
+
+if ($SingleFrames) then
+  #  Make single images for camera and cross track scanning modes.
+  # An SHDOM save file is input.
+  # V   1, nbytes, scale, X,Y,Z, theta, phi, rotang, NL, NS, delline, delsamp
+  # V   2, nbytes, scale, X1,Y1,Z1, X2,Y2,Z2, spacing, scan1, scan2, delscan
+
+  set outfile1=${outbase}_camera1.pds
+  set outfile2=${outbase}_track1.pds
+  set maxiter=0           # maximum number of iterations
+
+  put Visualize $prpfile NONE NONE $savefile NONE "$Nx $Ny $Nz" "$Nmu $Nphi"\
+      $BCflag $IPflag $deltaM P S "$flux0 $mu0 $phi0" 0.0 $sfcalb $wavelen \
+      "$splitacc $shacc" "$accel $solacc $maxiter" \
+    2   V "1 1 800 1.76 1.76 0.0  65 260 0  450 600 0.10 0.10" $outfile1 \
+        V "2 1 800 1.76 0.0 10.  1.76 7.04 10. 0.030 -30 30 0.15" $outfile2 \
+     NONE 120 2.2 0.6 1.5 | shdom90
+endif
+
+
+
+ 
+if ($RunCameraVisual) then
+  # Computes a sequence of camera images with viewing parameters 
+  # interpolated between specified waypoint values.  
+  # An SHDOM save file is input.
+  # V   1, nbytes, scale, X,Y,Z, theta, phi, rotang, NL, NS, delline, delsamp
+
+  set ns=320         # number of samples in camera images (horizontal)
+  set nl=240         # number of lines in camera images (vertical)
+  set pix=0.15       # pixel size in degrees
+  set n = 1          # starting frame number
+
+  # Specify the number of images per segment, and the location and
+  #   camera direction at each waypoint.
+  set Nimgway  =    ( 72    28   )
+  set xway     = (1.76  1.76  5.28)
+  set yway     = (1.76  1.76  1.76)
+  set zway     = ( 5.0   1.4   0.0 )
+  set thetaway = ( 120   120    60)
+  set phiway   = (   0   360   360)
+
+  # ------------------
+  set Nset=6         # number of images output in each SHDOM run
+  set nbytes=1       # image format: 1 byte/pixel or 2 bytes/pixel
+  if ($nbytes == 2) then
+    set dnscale=10000  # image value scale (DN/radiance)
+  else
+    set dnscale=400    # image value scale (DN/radiance)
+  endif
+  set maxiter=0      # maximum number of iterations
+
+  put Visualize $prpfile NONE NONE $savefile NONE "$Nx $Ny $Nz" "$Nmu $Nphi"\
+      $BCflag $IPflag $deltaM P S "$flux0 $mu0 $phi0" 0.0 $sfcalb $wavelen \
+      "$splitacc $shacc" "$accel $solacc $maxiter" >! base.inp
+
+
+    set k=1
+    while ($k <= $#Nimgway)     #  Loop over segments
+      @ k1 = $k
+      @ k2 = $k + 1
+      echo " "
+      echo "Segment $k"
+      echo " "
+
+      set j=1
+      while ($j <= $Nimgway[$k])    # Loop over frames in segment
+
+        cat base.inp >! i.t
+        set Nvis = `$AWK -v nset=$Nset -v nseg=$Nimgway[$k] -v j=$j 'BEGIN {n=nseg-j+1; if (n>nset) n=nset;  print n;}'`
+        put $Nvis >> i.t
+        set i=1
+        while ($i <= $Nvis)  # Loop over frames in each SHDOM run
+          set x     = `$AWK -v v1=$xway[$k1]  -v v2=$xway[$k2]  -v n=$Nimgway[$k] -v j=$j 'BEGIN {f=(j-1)/n; printf "%6.3f",(1-f)*v1+f*v2;}'`
+          set y     = `$AWK -v v1=$yway[$k1]  -v v2=$yway[$k2]  -v n=$Nimgway[$k] -v j=$j 'BEGIN {f=(j-1)/n; printf "%6.3f",(1-f)*v1+f*v2;}'`
+          set z     = `$AWK -v v1=$zway[$k1]  -v v2=$zway[$k2]  -v n=$Nimgway[$k] -v j=$j 'BEGIN {f=(j-1)/n; printf "%6.3f",(1-f)*v1+f*v2;}'`
+          set theta = `$AWK -v v1=$thetaway[$k1]  -v v2=$thetaway[$k2]  -v n=$Nimgway[$k] -v j=$j 'BEGIN {f=(j-1)/n; printf "%6.3f",(1-f)*v1+f*v2;}'`
+          set phi   = `$AWK -v v1=$phiway[$k1]  -v v2=$phiway[$k2]  -v n=$Nimgway[$k] -v j=$j 'BEGIN {f=(j-1)/n; printf "%6.3f",(1-f)*v1+f*v2;}'`
+          set n0 = `$AWK -v n=$n 'BEGIN {printf "%3.3d",n;}'`
+          put V "1 $nbytes $dnscale $x $y $z $theta $phi 0 $nl $ns $pix $pix" ${outbase}v${n0}.pds >> i.t
+          @ n++
+          @ j++
+          @ i++
+        end
+        put NONE 120 2.2 0.6 1.5 >> i.t
+        shdom90 <i.t
+      end
+
+      @ k++
+    end    
+    rm -f i.t base.inp
+endif
+

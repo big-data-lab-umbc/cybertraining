@@ -1,0 +1,125 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Choosing Inputs </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Choosing Inputs </H2>
+
+
+See Unix scripts included with the distribution for examples of running
+SHDOM.  Also read propgen.txt for how to prepare optical property files.
+<P>
+
+The main difficulties in choosing parameters is determining the desired
+tradeoff between accuracy and computation cost.  The angular resolution
+parameters (NMU, NPHI, SHACC) and the spatial resolution parameters (NX,
+NY, NZ, SPLITACC) are the primary ones that determine both the accuracy
+and the running time.  See 
+ <A HREF="accuracy.html" target=right> Accuracy Issues  </A> 
+ for a discussion of this.  NMU must be even (rounded up internally). 
+For NPHI greater than about 14, SHDOM will run faster if NPHI has small
+prime factors, due to the FFT part of the spherical harmonic transform. 
+The base grid size is often the same size as the property grid, but can
+have more grid points for higher spatial resolution or even can have
+less grid points than the property grid. <P>
+
+PROPFILE always needs to be specified, but INSAVEFILE and OUTSAVEFILE 
+seldom do, and CKDFILE is only for doing a k-distribution.  SFCFILE is
+given for a surface with variable albedo or temperature, but otherwise
+is NONE or NO.
+<P>
+
+Set BCFLAG=0 for periodic boundary conditions, and BCFLAG=3 for open
+boundary conditions. See
+ <A HREF="boundarys.html" target=right> Boundary Conditions </A>
+section for explanation.
+<P>
+
+Set IPFLAG=0 for normal radiative transfer. IPFLAG=3 is for the
+independent pixel approximation.  The independent scanline approximation
+is 2D radiative transfer in the solar plane for a 3D medium; it can be
+chosen by setting the solar azimuth to 0 and IPFLAG=2 (or SOLARAZ=90
+degrees and IPFLAG=1).  Bit 2 of IPFLAG can be set to try an
+approximation where the direct beam is computed in 3D, but the diffuse
+transfer is done on indendent pixels or 2D slices.  Note, IPFLAG=4 is
+the same as IPFLAG=0.
+<P>
+
+Generally for solar (collimated) problems with highly peaked phase
+functions DELTAM should be set to True; this is because the phase
+function must be truncated because a limited number of discrete
+ordinates can be used.
+<P>
+
+If you want the internal base grid to have the same height levels as the
+input property grid then GRIDTYPE='P'. This option allows the vertical
+grid spacing to be nonuniform, e.g. more in a cloud layer and less in 
+clear sky.  Another way to have the vertical base grid not be uniform is
+the GRIDTYPE='F' (file) option which will read the Z levels free format
+from a file with the name "zgrid.inp".  The other alternative is to
+have the base grid levels evenly spaced between the bottom and top of
+the domain (first and last level in property grid).  For an even grid
+GRIDTYPE='E', but keep in mind that there are NZ-1 grid cells, so that
+for doubling the vertical resolution use NZ=2*(NZP-1)+1 where NZP is
+the number of grid points vertically in the property file.
+<P>
+
+
+The SKYRAD parameter is usually 0, but is nonzero when the problem
+includes diffuse radiation incident on the top boundary.  This could be
+the cosmic background radiation for microwave wavelengths, or diffuse
+skylight for solar problems where the domain top is actually in the
+lower atmosphere.
+<P>
+
+The UNITS parameter is only relevant for thermal emission without a
+k-distribution.
+<P>
+
+The solution acceleration is usually turned on (ACCELFLAG=.TRUE.). 
+If the number of iterations is small because the problem is optically
+thin or highly absorbing, then the sequence acceleration can be turned
+off, and the memory for the DELSOURCE array freed up (by giving the array
+a length of 1).
+<P>
+
+The solution accuracy (SOLACC) is the rms change in the source function
+during an iteration normalized by the rms of the source function.  There
+is no need to make this much, much smaller than the general level of
+accuracy (related to the spatial and angular resolution). Because it is
+the rms change in an iteration, it should be smaller than the desired
+accuracy. Try starting with SOLACC=1E-4.  
+<P>
+
+See section on
+ <A HREF="arrays.html" target=right> Array Sizes and Memory Management </A>
+for how to choose the
+four memory parameters (MAX_TOTAL_MB, ADAPT_GRID_FACTOR,
+NUM_SH_TERM_FACTOR, CELL_TO_POINT_RATIO) used in shdom90.f90 or to
+adjust the array sizes in shdom.f to accomodate your problem size and
+computer memory.  The four memory parameters do not affect the SHDOM
+solution (unless SHDOM runs out of memory); they only control the array
+sizes.
+ <P>
+
+
+See section on 
+ <A HREF="propertyfiles.html" target=right>Property File Format  </A>
+ for how the medium properties are input.  The medium properties are
+specified at points on a grid and are assumed to vary linearly in
+between.  This is different from how Monte Carlo radiative transfer
+codes usually define the medium, which is by grid cells of uniform
+properties.  The medium properties in the model vary trilinearly across
+the grid cells.  The internal representation of the medium (on the base
+grid) is trilinearly interpolated from the input properties of the
+medium.  So if a sharp boundary is desired in the medium (e.g. at cloud
+top) it is a good idea to have the two different optical properties
+(e.g. cloud and clear) specified at two very close grid levels. 
+Otherwise the linear interpolation of the medium will smear the
+transition over the resolution of the input property file  (nature is
+seldom perfectly sharp).   
+
+</BODY>
+</HTML>

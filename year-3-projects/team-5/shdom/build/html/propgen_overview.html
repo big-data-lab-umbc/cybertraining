@@ -1,0 +1,53 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM Optical Property Generation</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM Optical Property Generation Overview </H2>
+
+The optical property file generation system for SHDOM has been upgraded
+to be more flexible and accurate.  Instead of the <tt>cloudprp</tt>
+program, there are now three Fortran 90 programs:
+<tt>make_mie_table.f90</tt> and <tt>make_ice_table.f90</tt> for making
+scattering tables and <tt>propgen.f90</tt> for generating the property
+file from a particle properties file.  The particle properties file
+specifies the mass content (g/m^3) and effective radius (microns) of
+each particle component at each grid point.  The <tt>make_mie_table</tt>
+program generates scattering tables for gamma or lognormal size
+distributions of spherical particles, while <tt>make_ice_table</tt>
+generates scattering tables in the shortwave for gamma distributions of
+one of eight ice crystal shapes using Ping Yang's single scattering
+properties.  The program <tt>plotscattab.f90</tt> makes a plotting file
+of phase functions versus angle from the Legendre series in a scattering
+table file.  The propgen program allows an arbitrary mixture of any
+number of pure components at each grid point.  The extinction and single
+scattering albedo from all the components are combined exactly, while
+phase functions existing in the scattering tables and newly created
+phase functions are chosen so that the phase function error is smaller
+than user specified tolerances. The result is a tabulated phase function
+format property file for SHDOM with a small as possible memory
+requirement that closely approximates the desired optical property
+distribution. <P>
+
+The example Unix script <tt>run_propgen_example</tt> shows how to make
+scattering tables and run propgen to generate a property file for SHDOM.
+Scattering tables are made at two wavelengths for lognormal
+distributions of spherical dust aerosols, gamma distributions of cloud
+water droplets, and gamma distributions of plate and rough aggregate ice
+crystals.  The example particle file <tt>nauru19990707.part</tt>
+specifies the mass content and effective radius distributions for a
+horizontally uniform aerosol layer (particle type 1) from the surface to
+1.4 km, a broken cumulus water cloud layer (type 2) from 0.59 to 2.03
+km, and a cirrus layer made of plates and aggregates (types 3 and 4)
+from 8.75 to 14.75 km.  The two-dimensional (X-Z) cumulus and cirrus
+cloud distributions are derived from the ARM millimeter-wave cloud radar
+on Nauru Island.  The distribution includes an IDL program
+<tt>plot_propgen_example.pro</tt> which plots the components of the
+particle file, the resulting extinction and single scattering fields,
+and radiance output from SHDOM (requires other IDL files in the SHDOM
+distribution). <P>
+
+</BODY>
+</HTML>

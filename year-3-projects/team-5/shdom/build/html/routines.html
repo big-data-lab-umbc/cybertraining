@@ -1,0 +1,136 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: List of Routines</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: List of Routines</H2>
+
+<PRE>
+    The following is a list of all the subroutines, where they are, and
+what they do.  The first column gives the file (0 is shdom.f/shdom90.f90, 
+1 is shdomsub1.f, 2 is shdomsub2.f, 3 is shdomsub3.f, M is shdom_mpi.f90,
+F is fftpack.f).  The second column indicates the calling routine.  The
+major solving  routines are in shdomsub1.f, other routines are in
+shdomsub2.f, all the regular I/O routines are in shdomsub3.f, the MPI
+calling routines are in shdom_mpi.f90, and fftpack.f has the FFTPACK 
+routines from NCAR.
+
+      Routine              Description
+0   TRILIN_INTERP_PROP   Interpolates medium properties to base/adaptive grid
+0   DIRECT_BEAM_PROP     Computes direct beam flux at a point
+1 0 SOLVE_RTE (S)        Main solver routine
+1 S COMPUTE_SOURCE       Computes the SH source function from the radiance
+1 S RADIANCE_TRUNCATION  Computes the next radiance truncation to use 
+1 S ACCELERATE_SOLUTION  Accelerates the solution sequence
+1 S PATH_INTEGRATION (P) Integrates the source function to get radiance
+1 P BOUNDARY_PNTS        Makes BCPTR of list of top and bottom boundary points
+1 P SURFACE_PARM_INTERP  Interpolates variable surface params to adaptive grid
+1 P COMPUTE_TOP_RADIANCES  Makes the top boundary radiances
+1 P FIXED_LAMBERTIAN_BOUNDARY    Makes the bottom boundary upwelling radiances
+1 P VARIABLE_LAMBERTIAN_BOUNDARY Makes the bottom boundary upwelling radiances
+1 P VARIABLE_BRDF_SURFACE  Makes the upwelling radiances for general BRDF
+1 P CHECK_SOLAR_SPECULAR_REFLECTION  Verifies that sun is along an ordinate
+1 P SH_TO_DO             Spherical harmonic to discrete ordinate transform
+1 P DO_TO_SH             Discrete ordinate to SH transform
+1 P SWEEPING_ORDER       Makes the point sweeping order for 2,4, or 8 octants
+1 P BACK_INT_GRID3D (B)  2D source function integration routine for one angle
+1 P BACK_INT_GRID2D (B)  2D source function integration routine for one angle
+1 P BACK_INT_GRID1D (B)  1D source function integration routine for one angle
+1 B NEXT_CELL            Gets next cell to go to adjacent to this face
+1   SWEEP_BASE_CELL      Returns next base grid cell in sweep
+1   SWEEP_NEXT_CELL      Returns next grid cell in sweep
+1 S SPLIT_GRID (G)       Main routine for adaptive cell splitting
+1 G INTERPOLATE_POINT    Interpolates medium, source for new grid points
+1 G DIVIDE_CELL (D)      Divides a single cell, adjusts the adaptive structure
+1 D MATCH_NEIGHBOR_FACE  Resolves the neighbor pointers for a new cell
+1   INHERIT_NEIGHBOR     Updates a cell's new neighbor cell
+1 D NEW_GRID_POINTS      Makes two new points and sets up the pointers
+1   MATCH_GRID_POINT     Find whether neighboring cells have matching gridpoints
+1 G CELL_SPLIT_TEST      Computes splitting criterion and direction to split
+1 G GRID_SMOOTH_TEST     Determines if cell will be split for a "smoother" grid
+2   NEW_GRIDS            Makes the internal X, Y, and Z grids
+2 0 INIT_CELL_STRUCTURE  Make initial grid data structure for the base grid
+2 S INTERP_GRID          Interpolates medium from property to internal grid
+2 S MAKE_DIRECT          Makes direct beam solar flux (calls DIRECT_BEAM_PROP)
+2 S PREPARE_PROP         Does delta-M scaling; makes PLANCK
+2 S INIT_RADIANCE        Does an Eddington (two-stream) initializatin
+2   EDDRTF               Solves Eddington radiative transfer for flux
+2   TRIDIAG              Tridiagonal solver used by EDDRTF
+2 S MAKE_ANGLE_SET       Makes angle set for the discrete representation
+2 S MAKE_SH_DO_COEF      Makes the SH/DO transform coefficients
+2   SURFACE_BRDF         Computes the reflection for the one of the BRDF types
+2   CHECK_OCEAN_BRDF_INTEG  Checks to see if enough DO angles for ocean BRDF 
+2   SPECULAR_SURFACE     Returns true if a specular surface
+2   FRESNEL_REFLECTION   Function for Fresnel specular reflection
+2   RPV_REFLECTION       Function for Rahman, Pinty, Verstraete reflection
+2 0 SUM_OUTPUT           Sums an output array over the k-distribution. 
+2 0 COMPUTE_NETFLUXDIV   Computes the net flux divergence everywhere
+2 0 COMPUTE_SH           Computes the SH output arrays
+2 0 INTERP_OUTPUT        Interpolates the output data to the new grid points
+2 S INTERP_RADIANCE      Interpolates SH radiance array to the new points
+2 0 VISUALIZE_RADIANCE   Computes radiances for the two visualization modes
+2   INTEGRATE_1RAY       Integrates the source function for one ray
+2   FIND_BOUNDARY_RADIANCE Gets the interpolated radiance at the boundary
+2   COMPUTE_SOURCE_1CELL Computes source times extinction for one cell
+2   PRECOMPUTE_PHASE     Precomputes phase function for all tabulated functions
+2 0 COMPUTE_RADIANCE (R) Computes the desired output radiance values    
+2 R COMPUTE_ONE_SOURCE   Computes the source function for 1 angle
+2 R INTEGRATE_SOURCE     Integrates the source function backward for radiance
+2   INTERPOLATE_FIELD    Trilinearly interpolates field given a grid cell
+2   LOCATE_GRID_CELL     Locates grid cell containing the specified point
+2   LEGENDRE_ALL         Computes a set of Legendre polynomials for one angle
+2 S YLMALL               Computes a set of spherical harmonic functions
+2   PLANCK_FUNCTION      Monochromatic Planck function routine
+2   INTEGRATE_PLANCK     Band integrates the Planck function
+2   GAUSQUADS            Gaussian quadrature routine
+2   DGAUSQUADS           Double Gaussian quadrature routine
+2   SSORT                Sorting routine for adaptive cell criterion
+3 0 USER_INPUT           Gets the input parameters from stdin
+3 0 NAMELIST_INPUT       Gets the input parameters from a namelist
+3 0 CHECK_INPUT_PARMETERS Checks input parameters for validity/reasonableness
+3 0 READ_PROPERTY_SIZE   Gets the size of the property file
+3 0 READ_PROPERTIES      Reads the property file
+3 0 CHECK_PROPERTY_INPUT Checks the values read in from the property file
+3 0 READ_SURFACE_SIZE    Gets the size of the surfae file
+3 0 READ_SURFACE         Reads the surface file
+3 0 READ_CKD_SIZE        Gets the size of the k-distribution file
+3 0 READ_CKD             Reads the correlated k-distribution file
+3 0 RESTORE_STATE        Reads the binary state file
+3 0 SAVE_STATE           Writes the binary state file
+3 S OUTPUT_CELL_SPLIT    Outputs the cell splitting criterion for every cell
+3 S VISUALIZE_CELLS      Outputs GLE graphics of cell structure
+3 0 OUTPUT_RESULTS       Selects and outputs the results
+3 0 OUTPUT_IMAGE         Outputs the visualization PDS images with labels
+M 0 START_MPI            Initializes the MPI system
+M 0 MAP_SHDOM_MPI        Sets the mapping of processors for the SHDOM domain
+M   OPTIMIZE_PROCESSOR_DOMAINS  Calculates the location of this processor
+M   LOAD_OBJ_FUNC        The objective function to minimize in the load balancing optimization
+M   ran                  Uniform random number generator
+M 0 BROADCAST_USER_INPUT Broadcasts the user input parameters from the master processor
+M 0 SCATTER_PROPERTIES   Sends the subdomain of optical properties to each processor
+M 0 BROADCAST_SURFACE_SIZE Broadcasts the surface array sizes from the master processor
+M 0 BROADCAST_SURFACE_PARMS Broadcasts the surface file parameters from the master processor
+M 0 BROADCAST_KDIST_SIZE Broadcasts the k-distribution array sizes from the master processor
+M 0 BROADCAST_KDIST_PARMS Broadcasts the k-distribution file parameters from the master processor
+M 0 GATHER_OUTPUT        Gathers the base grid output data from all the processors
+M S UNIFY_SPLITTING      Turns on cell splitting (DOSPLIT=.TRUE.) for all processors if any want to
+M 2 MAKE_DIRECT_PAR      Calculates the grid point direct solar fluxes with multiple processors
+M P FIND_BOUNDARY_POINTS Makes the pointers to and positions of the boundary 
+                           grid points of the neighboring processors 
+M B CALC_BOUNDARY_RADIANCES Calculates the discrete ordinate boundary radiances
+M   INTEGRATE_RAY        Does the RTE integrations for CALC_BOUNDARY_RADIANCES
+M 0 COMPUTE_RADIANCE_PAR Computes the output radiances using multiple processors
+M S CALC_ACCEL_SOLCRIT   Calculates full domain acceleration parameter (& solcrit)
+M 0 END_SHDOM_MPI        Shuts down MPI, writes load balancing file
+M M ABORT_SHDOM_MPI      Prints error message and aborts MPI
+F   COSTI                Sets up for the cosine FFT
+F   COST                 Does the cosine transform FFT
+F   RFFTI                Sets up for the real FFT
+F   RFFTB                Does the real FFT to discrete azimuths
+F   RFFTF                Does the real FFT to Fourier coefficients
+</PRE>
+
+</BODY>
+</HTML>

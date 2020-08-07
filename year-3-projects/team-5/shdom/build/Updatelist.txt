@@ -1,0 +1,105 @@
+
+Distribution   Upgrades/Bug fixes
+
+ 3MAY10   Separated large sw_ice_scatter.db from the distribution tar file.
+          Added warning about ocean surface reflection model to shdom.txt.
+
+15NOV09   Added memory parameter input file for multiple processors
+             on shared memory computers.
+           Fixed several rare MPI bugs.
+
+ 9MAR09   Major upgrade release (SHDOM input parameter list changed).
+           Added ability to run SHDOM on multiple processors with MPI.
+           Added option to read property inputs from and write most 
+             output formats to netcdf files (thanks to Robert Pincus).
+
+ 3MAR08   Fixed open boundary condition bug in DIRECT_BEAM_PROP.
+            (Thanks to Richard Siddans)
+
+ 6JUNE05  Limited SHDOM acceleration parameter to be less than 10; having
+             no limit might have caused divergence for optically thick IPA.
+           Fixed make_ice_table.f90 database reading allocation bug.
+           Fixed lowest level indexing error in ckdlwrrtm.f (27-JAN-2004).
+
+10JULY03  Corrected problem with ice scattering database (sw_ice_scatter.db)
+             by rescaling extinction efficiency, single scattering albedo, 
+             and asymmetry parameter for "delta transmission" of rays
+             through parallel ice crystal faces.
+
+20JUNE03  Major upgrade release.
+           Added new optical property file generation system consisting
+             of make_mie_table.f90 and make_ice_table.f90 for creating
+             single scattering table files for spherical particles
+             and 8 shapes of ice crystals (shortwave only), and 
+             propgen.f90 for producing property files with arbitrary
+             mixtures of particles at each grid point.
+           Added modified version of 6S ocean surface reflectance BRDF 
+             model to SHDOM (wavelength is now a required input parameter).
+           Modified RPV BRDF surface reflection function according to
+             Alexei Lyapustin for added robustness.
+           Added camera and cross-track scanning image "visualization"
+             output to SHDOM and example scripts and IDL programs.
+           Added longwave and shortwave RRTM based k-distribution programs.
+
+27JULY99  Modified cloudprp to change aerosol input file format (added 
+           distribution width and index of refraction dependence on wavelength)
+
+ 1JUNE99  Major upgrade release.
+           Added Fortran 90 main program (shdom90) with allocatable arrays.
+           New version of cloudprp.f.  Different modes for Mie table
+             generation. Faster Mie table generation.  Added aerosol
+             properties input from file.  Added lognormal size distributions
+             (courtesy of Lin Chambers).  Fixed bug for effective radius
+             off end of table.   (2/99)
+           Included program to plot phase functions in Mie tables.
+           Included documentation file for cloudprp and ckdfu.
+           Included more example scripts in distribution.
+           Included IDL SHDOM file input and visualization procedures.
+
+           Fixed horizontal range of radiance output in open boundary conditions
+             Note: this changed the input parameters for radiance output.
+           Added input parameter checking subroutine.
+           Fixed bugs for large optical depth per grid cell in    (5/98)
+             k-distributions by initializing for each k (INRADFLAG=.FALSE.).
+           Fixed bug for isotropic source function with NPHI>32.  (1/99)
+           Added checks for negative absorption in CKD file, and
+             negative phase function from severe Legendre truncation.
+
+
+20JUN97   Added general surface bidirectional reflectance functions.
+           Added open horizontal boundary conditions (new input - BCFLAG).
+           Improved adaptive grid cell splitting method (affects SPLITACC).
+           Improved response when adaptive grid generation runs out of memory.
+           Added code option for outputting rms of higher order radiance.
+           Added double gaussian discrete ordinate set option.
+
+20DEC96   Put in MAXRADOUT constant for radiance output array size.
+             Fixed heating rate bug for thermal emission with SH truncation
+
+ 2AUG96   Modified ckdfu.f to output CKD info at atmosphere file levels.
+
+30JUL96   Fixed bug that happened when NPHI was not a good FFT size (44,56,).
+           Fixed negative source bug: "Grid point has no contribution".
+
+11JUL96   Put in reading Z base grid from zgrid.inp file (GRIDTYPE='F').
+           Allowed delta-M mode for thermal source.
+           Referred to online journal article in documentation.
+
+16MAY96   Put in transmission cutoff to speed up optically thick radiances
+           Added J (source function) output
+
+ 7MAY96   Fixed cell integration formula for large cell optical path
+           Fixed initialization of l=0 m=0 radiance term
+           cloudprp.f: fixed number of size integration steps
+
+23APR96   Azimuth transform coefficient Nphi>32 bug fixed.
+           Echo parameter values in input routine. 
+           Solar direct beam in mean radiance, net flux output
+
+10APR96   Added variable Lambertian surface, input surface file,
+            changed GNDEMIS to GNDALBEDO.
+          Changed output file header.
+          Stored grid point sweeping order for speed up.
+
+29MAR96   First beta version
+

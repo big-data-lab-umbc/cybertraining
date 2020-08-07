@@ -1,0 +1,631 @@
+
+            SHDOM Property File Generation System
+
+
+The optical property file generation system for SHDOM has been upgraded
+to be more flexible and accurate.  Instead of the cloudprp program,
+there are now three Fortran 90 programs: make_mie_table.f90 and
+make_ice_table.f90 for making scattering tables and propgen.f90 for
+generating the property file from a particle properties file.  The
+particle properties file specifies the mass content (g/m^3) and
+effective radius (microns) of each particle component at each grid
+point.  The make_mie_table program generates scattering tables for gamma
+or lognormal size distributions of spherical particles, while
+make_ice_table generates scattering tables in the shortwave for gamma
+distributions of one of eight ice crystal shapes using Ping Yang's
+single scattering properties.  The program plotscattab.f90 makes a
+plotting file of phase functions versus angle from the Legendre series
+in a scattering table file.  The propgen program allows an arbitrary
+mixture of any number of pure components at each grid point.  The
+extinction and single scattering albedo from all the components are
+combined exactly, while phase functions existing in the scattering
+tables and newly created phase functions are chosen so that the phase
+function error is smaller than user specified tolerances. The result is
+a tabulated phase function format property file for SHDOM with a small
+as possible memory requirement that closely approximates the desired
+optical property distribution.
+
+
+The example Unix script "run_propgen_example" shows how to make
+scattering tables and run propgen to generate a property file for SHDOM.
+Scattering tables are made at two wavelengths for lognormal
+distributions of spherical dust aerosols, gamma distributions of cloud
+water droplets, and gamma distributions of plate and rough aggregate ice
+crystals.  The example particle file "nauru19990707.part" specifies the
+mass content and effective radius distributions for a horizontally
+uniform aerosol layer (particle type 1) from the surface to 1.4 km, a
+broken cumulus water cloud layer (type 2) from 0.59 to 2.03 km, and a
+cirrus layer made of plates and aggregates (types 3 and 4) from 8.75 to
+14.75 km.  The two-dimensional (X-Z) cumulus and cirrus cloud
+distributions are derived from the ARM millimeter-wave cloud radar on
+Nauru Island.  The distribution includes an IDL program
+"plot_propgen_example.pro" which plots the components of the particle
+file, the resulting extinction and single scattering fields, and
+radiance output from SHDOM (requires other IDL files in the SHDOM
+distribution).
+
+
+
+                       MAKE_MIE_TABLE
+
+Make_mie_table calculates the single scattering properties of gamma or
+lognormal distributions of spherical particles and outputs the results
+in a scattering table.  If the particle type is water or ice then an
+integration across the specified wavelength band may be performed.  If
+an aerosol particle type is chosen then the index of refraction of the
+aerosol is specified.
+
+For water or ice particles an integration across the wavelength range
+may be done.  In this case a series of Mie calculations are performed at
+a specified wavelength spacing using the correct index of refraction for
+each wavelength.  The alternative is to use the Planck function averaged
+index of refraction and central wavelength, which takes less computation
+but may be less accurate (depending on the spectral band width).  For
+solar wavelengths (< 3 um) the Planck function is for a solar
+temperature (5800 K), for longwave wavelengths (> 5 um) the Planck
+function is for an atmospheric temperature (270 K), while between 3 and
+5 um a straight average is used.
+
+If an aerosol particle type is chosen then the particle bulk density of
+the aerosol is specified.  The density is needed because the output
+scattering table extinction is normalized for a mass content of 1 g/m^3.
+
+The gamma distribution of cloud droplet sizes is
+     n(r) = a r^alpha exp(-b*r)
+ where r is the droplet radius, and a, b, alpha specify the gamma
+distribution.  The number concentration of droplets is 
+ N = a Gamma(alpha+1)/ b^(alpha+1), where Gamma is the gamma function.
+The effective radius of the distribution is r_eff = (alpha+3)/b, while
+the effective variance is v_eff = 1/(alpha+3).  A typical value for 
+water clouds is v_eff=0.1 or alpha=7.  For ice clouds a typical value is
+alpha=1 or 2.  An exponential distribution is obtained with alpha=0.  A
+large value of alpha gives close to a monodisperse distribution.
+
+The lognormal distribution of cloud droplet sizes is
+     n(r) = a/r exp( -[ln(r/r0)]^2 / (2*sigma^2) )
+ where r0 is the logarithmic mode of the distribution and sigma is the
+standard deviation of the log.  The number concentration of droplets is
+N = sqrt(2*pi)*sigma*a.  The effective radius of the distribution is
+r_eff = r0*exp(2.5*sigma^2) and the effective variance of the
+distribution is v_eff = exp(sigma^2)-1.  A common value for water clouds
+is sigma=.35, or v_eff=0.130, and a common value for aerosol distributions
+is sigma=0.7.
+
+The maximum radius of the distribution is specified by the user because
+it is the critical determinant of the Mie calculation computer time.
+There are often microphysical reasons for truncating the theoretical
+size distribution; for example, one might say that the cloud droplet
+mode ends at a radius of 50 microns.  For a narrow gamma distribution
+(alpha=7) of cloud droplets, a maximum radius of only twice the largest
+effective radius gives virtually the same optical properties as the 
+untruncated gamma distribution.  For a wide lognormal distribution, as
+might be used for an aerosol distribution, a much larger maximum radius
+relative to the largest effective radius would be required if no
+truncation was desired.  If there is truncation make_mie_table uses an
+iterative procedure to adjust the size distribution modal radius to
+achieve the desired effective radius.  Thus one can be assured that the
+size distributions have the effective radii reported in the output
+scattering table even if there is truncation of the theoretical
+distribution.  The number and spacing of the integration steps over the
+size distribution is controlled by the GET_NSIZE and GET_SIZES
+subroutines.  The default formula is DELX = max(0.01,0.03*X**0.5),
+where X is the size parameter (2*pi*r/lambda, lambda=wavelength)
+and DELX is the integration step.  This integration spacing is
+adequate for most purposes, but can be easily changed if higher
+accuracy is sought.
+
+                   Input Parameters
+
+Parameter   Description
+WAVELEN1    wavelength range (microns) for this band
+WAVELEN2       for monochromatic choose WAVELEN1=WAVELEN2
+PARTYPE     particle type: W=water, I=ice, A=aerosol
+              if PARTTYPE='A' then the index of refraction is input,
+              otherwise tables for water and ice index are used.
+AVGFLAG     'A' for spectral average over the wavelength range (for
+              PARTYPE='W' or 'I'), 'C' to use the central wavelength.
+DELTAWAVE   wavelength interval for averaging (micron)
+RINDEX      aerosol complex index of refraction (negative imaginary part)
+PARDENS     aerosol particle bulk density (g/cm^3)
+DISTFLAG    'G' for gamma distribution or 'L' for lognormal distribution
+ALPHA       distribution shape parameter (either alpha in gamma distribution
+              or sigma in lognormal distribution).  Effective variance
+              = 1/(alpha+3) for gamma, exp(alpha^2)-1 for lognormal.
+NRETANB     number of effective radii entries in Mie table
+SRETAB      starting effective radius (micron) in Mie table
+ERETAB      ending effective radius (micron) in Mie table
+MAXRADIUS   maxium particle radius in size distribution (micron)
+MIEFILE     output Mie scattering table file name
+
+
+
+
+                     MAKE_ICE_TABLE
+
+Make_ice_table calculates the shortwave single scattering properties of
+gamma distributions of one of eight shapes of ice crystals and outputs
+the results in a scattering table.  The ice crystal scattering properties
+were produced by Ping Yang and are described in this article:
+   Yang, Ping,  K. N. Liou, Klaus Wyser, David Mitchell, 2000:
+   Parameterization of the scattering and absorption properties of
+   individual ice crystals.  J. Geophys. Res., 105 (D4), 4699-4718.
+ The scattering properties are tabulated for 56 wavelength bands from
+0.20 to 5.0 microns and 24 particle lengths from 3 to 3500 microns. The
+eight ice crystal shapes are 1=hollow column, 2=solid column, 3=plate,
+4=dendrite, 5=rough aggregate, 6=smooth aggregate, 7=4-bullet rosette,
+and 8=6-bullet rosette (see the article for pictures of these shapes).
+
+The phase functions have been modified for this distribution by 
+convolving the portions with scattering angles less than 10 degrees by a
+gaussian with 0.25 degree rms width and by adjusting the forward peak
+height to normalize each phase function.  The reasons for doing this is
+that the original phase functions with the largest size parameters would
+require a huge number of Legendre series terms to be represented for
+SHDOM and also were not properly normalized.  The number of Legendre
+terms required for the smoothed forward peak phase functions is 2500.
+The smoothing of the forward peak will not affect the radiative transfer
+results significantly for nearly all applications (one application where
+it could be an issue is sun photometry, but the TMS approximation in
+SHDOM is already poor for that application).  
+
+These phase functions do not contain the "delta transmission", which is
+the direct transmission of rays through parallel faces of ice crystals. 
+The extinction efficiency, single scattering albedo, and asymmetry
+parameter have thus been delta rescaled to be consistent.  This reduces
+the extinction efficiency, single scattering albedo, and asymmetry
+parameter from the values in Ping Yang's original data.  The extinction
+efficiency is well below 2 for crystals with parallel faces, such as
+plates and solid columns.
+
+The modified Ping Yang ice scattering data is stored in the file
+"sw_ice_scatter.db".  This ascii file contains a header with useful
+information, followed by the data with one line per particle shape,
+wavelength, and particle size.  Each line contains the following
+columns: 
+ Heading     Explanation
+ S          shape index (1 to 8)
+ Wave1      starting wavelength of band (microns)
+ Wave2      ending wavelength of band (microns)
+ Wavcen     center wavelength of band (microns)
+ IndexRe    real part of index of refraction
+ IndexIm    imaginary part of index of refraction
+ SolarWt    fraction of solar flux in wavelength band
+ ParLength  particle length (maximum extent) (microns)
+ ParDarea   equivalent area spherical diameter (microns)
+ ParDvol    equivalent volume spherical diameter (microns)
+ Qext       extinction efficiency
+ SSalb      single-scattering albedo
+ Asym       asymmetry factor
+ Phasefunc  phase function at 288 angles stored in a compressed format
+
+The log of the phase function values are stored in three digit base 95
+(there are 95 printable characters in ascii).  If the three characters
+of the base 95 number are represented by Cn (i.e. C1,C2,C3) then the
+base 95 digits are Dn=ICHAR(Cn)-32, and the phase function value are
+10**(10*(D1/95+D2/95**2+D3/95**3)-4).  This helps to compress the 
+original 152 million bytes of ice scattering data down to only 10
+millions bytes.
+
+Make_ice_table reads the "sw_ice_scatter.db" database file to produce a
+scattering table file for gamma size distributions with a sequence of
+effective radii for one particle shape (i.e. it does not allow particle
+mixtures).  The single scattering properties are averaged over the
+specified wavelength range using a solar temperature (5800 K) Planck
+function weighting.  The program prints out the database bands and
+weightings that are used.  The gamma distributions are in terms of the
+equivalent volume spherical diameter (Dv), not the particle length.  The
+"b" parameter of the gamma distribution [n(D) = a Dv^alpha exp(-b*Dv)]
+is adjusted iteratively to achieve the correct effective radius.  The
+effective radius is defined as one half the ratio of the third moment of
+Dv to the second moment of Da (the equivalent area spherical diameter).
+The user specified effective radius may not be achievable for a
+particular particle shape and size distribution width, in which case a
+different range of effective radius or a narrower distribution (larger
+alpha) will have to be chosen.  The extinction in the output scattering
+table is normalized for distributions with an ice water content of      
+1 g/m^3 assuming an ice density of 0.916 g/cm^3.
+
+
+                   Input Parameters
+
+Parameter   Description
+ICESCATDB   filename of the ice scattering database (i.e. sw_ice_scatter.db)
+WAVELEN1    wavelength range (microns) for this band
+WAVELEN2       for monochromatic choose WAVELEN1=WAVELEN2
+SHAPEIND    index of ice crystal shape (1=hollow column, 2=solid column, 
+              3=plate, 4=dendrite, 5=rough aggregate, 6=smooth aggregate, 
+              7=4-bullet rosette, 8=6-bullet rosette)
+NRETANB     number of effective radii entries in scattering table
+SRETAB      starting effective radius (micron) in scattering table
+ERETAB      ending effective radius (micron) in scattering table
+ALPHA       gamma distribution shape parameter 
+ICETABFILE  output scattering table file name
+
+
+
+
+                        PROPGEN
+
+Propgen generates an optical property file for SHDOM from a particle
+property file specifying the 3D distribution of mass content and
+effective radius for several types of particles.  The optical properties
+for these particle types are specified in scattering table files.  The
+optical properties are interpolated in effective radius within the
+scattering tables (logarithmically for extinction and linearly for
+single scattering albedo and phase function).  The extinction and
+single scattering albedo for the mixture specified at each grid point
+are calculated exactly.  The phase functions for the mixtures are
+approximate, however, because there is not enough memory to store a
+phase function for each grid point.  Instead, the closest phase function
+to the correct one is used.  If none of the phase functions in the
+scattering tables are within the user specified tolerances then the new
+mixture phase function is added to the list.  Tolerances are specified
+for the asymmetry parameter and the maximum fractional error in phase
+function values.
+
+There are three parameters that control the creation of new phase
+functions.  The first is the maximum number of phase functions that may
+be created, which is designed to limit the memory use by SHDOM.  The
+second and third parameters are the tolerance in asymmetry parameter
+error and the tolerance in maximum fractional error in phase function
+values.  The maximum fractional phase function error is calculated at 90
+angles from 2 to 180 degrees, but this can be changed by changing the
+ "INTEGER, PARAMETER :: NANGLES=90" statement in propgen.f90.  Smaller
+values of the two tolerances will produce a more accurate property file,
+but at the expense of a larger number of phase functions.  If the
+property file is to be used only for flux computations then the
+asymmetry parameter tolerance is most important and the fractional phase
+function tolerance can be set large.  If the property file is to be
+used for radiance calculations then the fractional error in phase
+function tolerance is more important.  If you are outputting a
+one-dimensional property file, then you can set the tolerances to zero
+to get one phase function for each output level (actually the program
+has minimum values of 0.002 for the asymmetry parameter tolerance and
+0.01 for the fractional phase function tolerance).  Propgen only outputs
+the phase functions actually used in the property file, not all the ones
+in the scattering tables (like cloudprp did).  If 1000 or more phase 
+functions are going to be output then the format statement in subroutine
+OUTPUT_PROPERTIES will need to be changed.
+
+In addition to the scattering properties from the input particles,
+propgen also calculates and includes molecular Rayleigh scattering.  The
+use specifies a Rayleigh scattering coefficient, which depends on
+wavelength (or the user may wish to simply set to zero for some
+applications).  The amount of molecular scattering depends on the air
+density.  Hence for a particular solar wavelength band a coefficient (k)
+may be defined which gives the extinction from the air pressure (p) and
+temperature (T):  ext = k p/T.  The Rayleigh scattering coefficient
+input to propgen may be derived from the molecular Rayleigh scattering
+optical depth.  The Rayleigh optical depth at sea level as a function of
+wavelength (lambda in micron) is 
+    tau = 0.0088*lambda**(-4.15+0.2*lambda)
+From this formula the propgen Rayleigh input coefficient is
+    k = (2.97E-4 K mb^-1 km^-1) lambda**(-4.15+0.2*lambda)
+Propgen uses the hypsometric relation to calculate the pressure profile
+from the input temperature profile.
+
+Typically the high resolution cloud field occupies only small portion of
+the atmospheric profile and the other height levels are used to fill in
+the rest of the atmosphere.  The other height levels should be chosen
+according to the needs of SHDOM and the molecular absorption profile. 
+SHDOM needs some vertical resolution to resolve the radiance field.  If
+molecular Rayleigh scattering is significant, then the other levels
+must exist in clear sky to put that scattering in the property file. 
+Similarly, if a k-distribution file is giving the molecular absorption,
+then other levels must cover the range where the absorption is
+significant.  For example, stratospheric levels need to be included for
+ozone absorption in the ultraviolet.
+
+
+                     Particle Properties File
+
+The particle file specifies the three-dimensional distribution of mass
+content (g/m^3) and effective radius (microns) for each component type
+of particle.  Only the the particle types with nonzero mass content need
+to be specified at each grid point.  The particle file is an ascii text
+file with the following format:
+   3            [format type]
+   Nx Ny Nz     [number of X, Y, Z grid points]
+   delX delY    [X and Y grid spacing in km]   
+   Z1 ... Zn    [heights of particle levels in km]
+   T1 ... Tn    [temperatures in Kelvin at these levels]
+   IX IY IZ  Numcomp  Type1 Mass1 Reff1 ... TypeN MassN ReffN
+    . . .
+ Numcomp is the number of particle components, Type? are the type
+numbers of the components, Mass? are the mass contents [g/m^3] of the
+components, and Reff? are the effective radii [microns] of the
+components.  See file "nauru19990707.part" in the distribution for an
+example particle file.  In addition to this new particle file format,
+propgen can read the old 2 parameter LWC files that cloudprp used.
+
+                  Scattering Table Format
+
+The scattering tables have a six line header.  Propgen only reads the
+wavelength range in the second header line and the number of effective
+radii on the sixth header line.  After the header, for each effective
+radius entry in a scattering table, there is one line with the effective
+radius, the volume extinction coefficient (km^-1 for a mass content of 1
+g/m^3), the single scattering albedo, and the order (Nleg) of the
+Legendre series of the phase function.  The next line or several lines
+contain the Nleg+1 Legendre series coefficients, starting with chi0
+(which must be equal to 1).  For an example scattering table, see one
+of the scattering table files produced by the example script.  Propgen
+can read the Mie tables produced by cloudprp if the wavelength range is
+put in the second line (instead of just the central wavelength) using a
+text editor.
+
+                   Input Parameters
+
+Parameter       Description
+NSCATTAB        number of input scattering tables (number of pure components)
+SCATTABFILES()  name of each scattering table file
+SCATNUMS()      index or particle type of each scattering table (these type 
+                  numbers must match the types in the particle file)
+PARFILE         input particle properties filename
+MAXNEWPHASE     maximum number of new phase functions created
+ASYMTOL         tolerance in asymmetry parameter for creating a 
+                  new phase function
+FRACPHASETOL    maximum fractional error tolerance in phase function value 
+                  for creating a new phase function
+RAYLCOEF        molecular Rayleigh scattering coefficient (K/(km mb))
+NZO             number of extra height levels output in property file
+                  (in addition to those in the particle file)
+ZOTHER()        heights (km) and temperatures (K) of other levels
+TEMPOTHER()     
+PROPFILE        output SHDOM property file name
+
+
+
+
+                        PLOTSCATTAB
+
+Plotscattab calculates phase functions as a function of scattering angle
+from a scattering table produced by make_mie_table or make_ice_table or
+from the tabulated phase functions in a property file.  The scattering
+tables and property files stores the phase function as a Legendre
+series, so plotscattab sums the Legendre series for a specified number
+of discrete scattering angles.  Several phase function for different
+effective radius may be selected for conversion.  A graphing program can
+be used to plot the output of plotscattab.  
+
+               Plotting file format
+
+The output file from plotmietab contains a three line header and then
+the phase functions in separate columns.  The phase function output
+format is:
+ !  Scattering table phase functions: water_w164c.scat 
+ ! Angle cos(angle)  Phase functions for effective radii (um) 
+ !                      5.00       10.00       15.00       20.00
+     0.00  1.000000  0.2353E+03  0.8809E+03  0.1945E+04  0.3422E+04
+      . . .
+
+                   Input Parameters
+
+Parameter   Description
+FILETYPE    'S'=scattering table input, 'P'=SHDOM property file input
+INFILE      scattering table or property file name
+NANGLE      number of output angles (e.g. 181 for output at every degree)
+              NANGLE<0 allows the user the input ABS(NANGLE) angles
+NOUT        number of output phase functions
+OUTREFF()   effective radii (micron) list or 
+              tabulated phase function numbers (1,2,...)
+PLOTFILE    plotting output file name
+
+
+
+
+
+
+
+                           CLOUDPRP
+
+
+Cloudprp is now considered obsolete, but is included in the distribution
+for those that may prefer to keep using it or don't have a Fortran 90
+compiler.  It has not been modified for this distribution, and is no
+longer supported.  Since it lacks the adaptive tabulated phase function
+algorithm of propgen, it is also less accurate.
+
+Cloudprp prepares SHDOM properties files for 3D cloud fields.  The cloud
+field is input with a 3D grid of liquid water content and (optionally)
+droplet effective radius.  A tabulated phase function property file for
+a particular wavelength is produced using Mie scattering from gamma
+distributions or lognormal distributions of cloud droplets. The cloud
+layer may occupy only part of the output domain, in which case the other
+height levels are specified.  A vertical profile of horizontally uniform
+aerosol scattering may be specified.  The aerosol properties (0.55 um
+extinction, effective radius, distribution width, and index of
+refraction at 0.55 um and the desired wavelenth) are input from a file
+as a function of height.  The aerosol optical properties are calculated
+with Mie theory and molecular Rayleigh scattering is included.
+
+Compiling cloudprp:
+  f77 -O -o cloudprp  cloudprp.f mieindsub.f
+
+There are two modes of operation to cloudprp.  One is for making a Mie
+scattering table of cloud optical properties.  The other mode is to use
+a Mie table to produce an SHDOM property file.  Because the Mie
+computations are time consuming it is useful to save these scattering
+tables.  A Mie table lists the scattering properties (extinction,
+single scattering albedo, Legendre series coefficients for the phase
+function) as a function of droplet effective radius for a particular
+wavelength and gamma distribution width parameter.  The table is
+made for a liquid water content of 1 g/m^3 and is easily scaled to
+other LWCs.
+
+                   Input Parameters
+
+Making Mie Table:
+
+Parameter   Description
+MIEFLAG     'O' Output, for making the Mie table
+MIEFILE     output Mie scattering table file name
+PARTTYPE    particle type: W=water, I=ice, A=aerosol
+              if PARTTYPE='A' then the index of refraction is input,
+              otherwise tables for water and ice are used.
+WAVELEN1    wavelength range (microns) for this band
+WAVELEN2       for monochromatic choose WAVELEN1=WAVELEN2
+DISTFLAG    'G' for gamma distribution or 'L' for lognormal distribution
+ALPHA       distribution shape parameter (either alpha in gamma distribution
+              or sigma in lognormal distribution).  Effective variance
+              = 1/(alpha+3) for gamma, exp(alpha^2)-1 for lognormal.
+NRETANB     number of effective radii entries in Mie table
+SRETAB      starting effective radius (micron) in Mie table
+ERETAB      ending effective radius (micron) in Mie table
+MAXTABLEG   maximum Legendre series order for Mie table phase functions
+
+Making Property File:
+
+Parameter   Description
+MIEFLAG     'I' Input, for reading the Mie table
+MIEFILE     input Mie scattering table file name
+PROPFILE    output SHDOM property file name
+CLOUDFILE   input cloud LWC/Reff file name
+DROPCONC    droplet concentration (cm^-3) (used if effective radius not in file)
+RAYLCOEF    molecular Rayleigh scattering coefficient (K/(km mb))
+AEROFILE    input aerosol property file (or NONE)
+AERODIST    aerosol size distribution type ('G' for gamma, 'L' for lognormal)
+MAXOUTLEG   maximum Legendre series order for property file
+NZO         number of extra height levels (in addition to those in cloud file)
+ZOTHER()    heights (km) and temperatures (K) of other levels
+TEMPOTHER()  
+
+
+Although the Mie calculations are done for a single wavelength, the 
+wavelength range for a band is input.  This is for performing a spectral
+integration across a band using a k-distribution for molecular
+absorption.  If a range of wavelengths are input then the central
+wavelength is chosen by a weighted average using a Planck function.
+For solar wavelengths (< 4 um) the Planck function is for a solar
+temperature (5800 K), while for longer wavelengths an atmospheric
+temperature (270 K) is used.  A weighted averaged is similarly done to
+define the band averaged index of refraction.  The PARTTYPE='A' option
+allow one to make Mie tables and property files with a user specified
+index of refraction, such as for dirty cloud droplets, aerosols, etc.
+
+The gamma distribution of cloud droplet sizes is
+     n(r) = a r^alpha exp(-b*r)
+ where r is the droplet radius, and a, b, alpha specify the gamma
+distribution.  The number concentration of droplets is 
+ N = a Gamma(alpha+1)/ b^(alpha+1), where Gamma is the gamma function.
+The effective radius of the distribution is r_eff = (alpha+3)/b, while
+the effective variance is v_eff = 1/(alpha+3).  A typical value for 
+water clouds is v_eff=0.1 or alpha=7.  For ice clouds a typical value
+is alpha=1.  An exponential distribution is obtained with alpha=0.  
+A large value of alpha gives close to a monodisperse distribution.
+
+The lognormal distribution of cloud droplet sizes is
+     n(r) = a/r exp( -[ln(r/r0)]^2 / (2*sigma^2) )
+ where r0 is the logarithmic mode of the distribution and sigma is the
+standard deviation of the log.  The number concentration of droplets is
+N = sqrt(2*pi)*sigma*a.  The effective radius of the distribution is
+r_eff = r0*exp(2.5*sigma^2) and the effective variance of the
+distribution is v_eff = exp(sigma^2)-1.  A common value for water clouds
+is sigma=.35, or v_eff=0.130.
+
+The cloud optical properties depend on the index of refraction and the
+gamma distribution of cloud droplets.  The index of refraction of either
+water or ice is obtained from subroutines in the program and averaged
+over the wavelength range as described above.  The width parameter of
+the gamma distribution, alpha, is given in the Mie table.  The other
+parameters of the gamma distribution are determined from the cloud
+liquid water content and the effective radius.  These are either both
+specified in the cloud LWC file or determined from the LWC.  If only the
+LWC is in the cloud file then the droplet number concentration is
+assumed to be constant and the effective radius is calculated.
+
+In order to save computing time, the integration over the droplet size
+distribution does not fully resolve the Mie scattering function. For
+large size parameters this may cause some small spurious wiggles on the
+phase function.  If these bother you, then change the spacing (DELX)
+in MAKE_MIE_TABLE.  Also the Mie code used does not determine if
+an integration point lands on a resonance spike, and so there is
+a small chance that this could effect the results in a minor
+way for nonabsorbing wavelengths.
+
+The number of Legendre series terms needed for the phase function
+depends on the effective size parameter (x_eff = 2 pi r_eff/lambda) of
+the droplet size distribution.  For visible wavelengths more than 1000
+terms may be needed for a fully converged series.  For some radiative
+transfer applications (outputting only fluxes in solar or for any
+thermal radiative transfer) a truncation of the series may be desired.
+The MAXTABLEG and MAXOUTLEG input parameters allow one to control
+how many Legendre terms are output.
+
+Rayleigh scattering coefficient:  The molecular scattering coefficient
+depends on the air density.  Hence for a particular solar wavelength
+band a coefficient (k) may be defined which gives the extinction from
+the air pressure (p) and temperature (T):  ext = k p/T.  The Rayleigh
+scattering coefficient input to cloudprp may be derived from the
+molecular Rayleigh scattering optical depth.  The Rayleigh optical depth
+at sea level as a function of wavelength (lambda in micron) is 
+    tau = 0.0088*lambda**(-4.15+0.2*lambda)
+From this formula the cloudprp Rayleigh input coefficient is 
+    k = (2.97E-4 K mb^-1 km^-1) lambda**(-4.15+0.2*lambda)
+
+Typically the high resolution cloud field occupies only small portion of
+the atmospheric profile and the other height levels are used to fill in
+the rest of the atmosphere. The other height levels should be chosen
+according to the needs of SHDOM, the aerosol profile, and the molecular
+absorption profile.  SHDOM needs some vertical resolution to resolve the
+radiance field.  If aerosols or molecular Rayleigh scattering are
+significant, then the other levels must exist in clear sky to put that
+scattering in the property file.  Similarly, if a k-distribution file is
+giving the molecular absorption, then other levels must cover the range
+where the absorption is significant. For example, stratospheric levels
+need to be included for ozone absorption in the visible.
+
+
+                      Cloud LWC File
+
+The cloud LWC file specifies the three-dimensional distribution of 
+cloud liquid water content (g/m^3) and (optionally) the droplet
+effective radius (micron).  There are thus two types of cloud LWC
+files: 1 parameter and 2 parameter files.  The cloud LWC file is
+an ascii text file with the following format;
+   type         [1 or 2, for LWC only or LWC and Reff]
+   Nx Ny Nz     [number of X, Y, Z grid points]
+   delX delY    [X and Y grid spacing in km]
+   Z1 ... Zn    [heights of cloud levels in km]
+   T1 ... Tn    [temperatures in Kelvin]
+  IX IY IZ LWC        [for 1 parameter file, for each grid point]
+    . . .
+  IX IY IZ LWC Reff   [for 2 parameter file]
+    . . .
+
+See the "les2y21.lwc" file in the distribution for an example cloud LWC file.
+
+
+                    Aerosol Property File
+
+The aerosol property file specifies the (usually coarse) vertical
+distribution of aerosol properties.  Simply input 'NONE' for the aerosol
+file name if no aerosols are desired.  There must be at least two levels
+in the file.  The format is ascii text with the following columns:
+
+   Height,  Extinction,  Eff. Radius,  alpha/sigma, Index of refraction
+            at 0.55 um                              at 0.55 um and wavelenth
+    (km)     (km^-1)      (micron)
+
+The levels must be increasing in height.  The aerosol extinction and
+single scattering albedo are interpolated between the input levels. The
+aerosol input level closest to the property file level is chosen for the
+combined aerosol/Rayleigh phase function.  Property file heights outside
+the aerosol file range use the closest (first or last) aerosol level.
+The aerosol distribution width parameter is either "alpha" for a gamma
+distribution or "sigma" for a lognormal distribution (same as for the
+the cloud input described before).
+  The index of refraction and effective radius of the aerosols depends
+on their composition (e.g. sea salt, mineral, sulfate), degree of
+hydration, and wavelength.
+ An example aerosol file is given below (it has a total 0.55 micron
+optical depth of 0.4): 
+   0.0   0.10   0.9  0.7   1.5 -0.01  1.5 -0.02
+   2.0   0.10   0.9  0.7   1.5 -0.01  1.5 -0.02
+   4.0   0.02   0.6  0.7   1.5 -0.01  1.5 -0.02
+  12.0   0.00   0.6  0.7   1.5 -0.01  1.5 -0.02
+ Note that this calculation is for a more absorbing wavelength, for
+which the imaginary part of the index of refraction is larger than at
+0.55 microns.
+
+

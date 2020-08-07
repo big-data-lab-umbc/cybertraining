@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Surface File Format</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Surface File Format</H2>
+
+    There are currently four types of surface property files:  
+Lambertian, Fresnel, RPV, and Ocean.   The file format allows the
+temperature and reflection properties to vary arbitrarily across the
+surface.  The surface properties are specified on a regular, evenly
+spaced grid.  There should be Nx*Ny points in the surface file.  The
+properties are bilinearly interpolated to the domain bottom grid point
+locations.  The surface domain is also periodic in X and Y, so that the
+domain is delX*Nx by delY*Ny in size.  Thus there are Nx cells across,
+and the routine that reads in the surface properties assigns the
+properties of the left side of the domain (IX=1) to the right side of
+the last cell (IX=NX+1).  A uniform surface can be specified by having
+Nx=1 and Ny=1 and making delX and delY large enough to cover the whole
+domain.
+<P>
+
+  The Lambertian surface file format is as follows:
+ <PRE>
+    L
+    Nx  Ny   delX  delY
+    IX IY  SfcTemp SfcAlbedo  
+      . . .
+ </PRE>
+
+<P>
+  The Fresnel surface is specified with the complex index of refraction of
+the dielectric surface (Mre, Mim):
+ <PRE>
+    F
+    Nx  Ny   delX  delY
+    IX IY  SfcTemp  Mre  Mim
+      . . .
+ </PRE>
+
+<P>
+  The RPV surface is specified with three parameters (rho0, k, Theta):
+ <PRE>
+    R
+    Nx  Ny   delX  delY
+    IX IY  SfcTemp  rho0  k  Theta
+      . . .
+ </PRE>
+
+<P>
+  The Ocean surface is specified with the near surface wind speed (m/s)
+and the chlorophyl-alpha pigment concentration (mg/m^3): 
+ <PRE>
+    O
+    Nx  Ny   delX  delY
+    IX IY  SfcTemp  WindSpeed  PigmentConc
+      . . .
+ </PRE>
+The IX and IY are the surface grid numbers (1 to Nx, 1 to Ny).  The surface
+temperature is specified in Kelvin.
+
+</BODY>
+</HTML>

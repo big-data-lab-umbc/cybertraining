@@ -1,0 +1,72 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Boundary Conditions</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Boundary Conditions</H2>
+
+    The upper boundary condition is open, i.e. there is no reflection from
+the top of the domain.  Isotropic incident radiance at the top boundary
+may be specified.  
+<P>
+    There are currently four types of surface reflection:   Lambertian,
+Fresnel, RPV (Rahman, Pinty, Verstraete, 1993:  J. Geophys. Res., 98,
+20791), and Ocean.  It is simple to add other surface types (see
+ <A HREF="sourcecode.html" target=right> Source Code Options </A>).
+  A Lambertian surface reflects radiance isotropically, and is specified
+with the surface albedo.  A Fresnel surface reflects specularly, and is
+specified with the index of refraction of the surface dielectric (e.g.
+water). The RPV parameterization is used to model the general
+bidirectional reflectance function (BRF) characteristics of land
+surfaces (soils and vegetation) with three parameters (rho0, k, Theta).
+The Ocean BRDF parameterization models the glint specular reflection
+averaged over wave facets and the internal reflection from sea water,
+and is specified by the wind speed and chlorophyl-alpha pigment
+concentration.  The Ocean reflectance model is obtained from the 6S
+model and modified by Norman Loeb at NASA Langley.  High SHDOM angular
+resolution (Nmu, Nphi) is needed at low wind speeds to resolve the
+broadened specular reflection peak, so it is a good idea to do a test
+with increasing angular resolution until the reflection is stable. <P>
+
+See the <A HREF="surfacefiles.html" target=right> SURFACE FILE FORMAT
+</A> section for how to specify the parameters. The temperature and
+reflection properties of these models may vary arbitrarily across the
+surface.  <P>
+    There are two options for the horizontal boundary conditions.  The
+first is periodic and the second is open.  These are specified for X and
+Y directions independently using the BCFLAG: bit 0 for X and bit 1 for
+Y.  Thus BCFLAG=0 is periodic in X and Y, BCFLAG=1 is open in X and
+periodic in Y, and BCFLAG=3 is open in X and Y.  The independent pixel
+flag (IPFLAG) overrides the boundary condition flag, since an
+independent pixel does not have a horizontal boundary condition.
+<P>
+    Periodic boundaries mean that when rays exit one side they wrap
+around to enter the opposite side. The periodic domain size is NX*DELX
+by NY*DELY; for example if NX=64 and DELX=0.050 km, then X=3.2 km is
+equivalent to X=0 km (left hand side).  
+<P>
+    The open horizontal boundary condition means that radiation leaving
+the sides does not wrap around and is not reflected back in.  However,
+there may be radiation entering the sides.  For open BCs the property
+file grid points on the edges are used in independent pixel mode to
+compute the boundary radiation.  For example, in 2D (X and Z) the first
+and last X property grid columns are computed with plane-parallel (IPA)
+radiative transfer. These grid columns then provide the boundary
+radiances for the interior of the domain.  The interior domain is
+(NX-1)*DELX wide.  In 3D the four corner columns are computed with 1D
+(plane-parallel) radiative transfer, while the four side slices are done
+with 2D radiative transfer.  If you want the boundary columns to produce
+plane-parallel results, simply make sure the input optical properties
+for the columns on the boundaries are the same.  The radiance output
+calculation can be done for locations beyond the horizontal domain; this is
+the purpose of the "X and Y offsets" in the radiance output
+specification.  For the open boundary conditions the rays are traced
+back through the  regions beyond the domain using plane-parallel
+radiative transfer, and then may enter the domain.  This allows the
+lower part of the domain to be seen through the domain "sides" for
+slanted paths.
+
+</BODY>
+</HTML>

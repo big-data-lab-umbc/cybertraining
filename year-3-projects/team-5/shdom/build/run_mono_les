@@ -1,0 +1,151 @@
+#!/bin/csh
+#   Example script for monochromatic solar or thermal radiative transfer 
+# on the FIRE LES 2D cloud.  Makes Mie tables with make_mie_table, runs
+# propgen to make the SHDOM property file and then shdom90 to do the 
+# radiative transfer.
+set AWK=awk   # use nawk on SGI and Sun
+
+
+set Solar=1     # 1 for solar, 0 for thermal
+
+set MakeMieTable=1
+set MakePropertyFile=1
+set RunSHDOM=1
+
+
+#   Set the file names and wavelength
+if ($Solar) then
+  set scattable="water_w16c.scat"
+  set prpfile="les2y21w16.prp"
+  set outbase="les2y21w16a"
+  set wavelen=1.65
+else
+  set scattable="water_w107c.scat"
+  set prpfile="les2y21w107.prp"
+  set outbase="les2y21w107a"
+  set wavelen=10.7
+endif
+
+
+
+# ----------------------------------  Start of Processing
+# Compile the "put" command
+if (!(-e put))  cc -o put  put.c
+
+
+if ($MakeMieTable) then
+  #  Makes the Mie scattering table for spherical water droplets for
+  # gamma size distributions with a range of effective radius. 
+
+  set distflag=G                   # G=gamma, L=lognormal size distribution
+  set alpha = 7                    # gamma dist shape parameter
+  set Nretab=50                    # number of effective radius in table
+  set Sretab=0.5; set Eretab=25    # starting, ending effective radius (micron)
+  set maxradius=75                 # maximum radius in distribution (micron)
+  set partype = "W"                # W for water
+  set avgflag=C                    #  C for using central wavelength
+
+  put "$wavelen $wavelen" $partype $avgflag $distflag $alpha \
+     "$Nretab $Sretab $Eretab" $maxradius $scattable | make_mie_table
+endif
+
+
+
+
+if ($MakePropertyFile) then
+  # Runs propgen to make the SHDOM optical property file from the 
+  # type 2 LWC file for the 64x17 stratocumulus LES slice.  
+  # First converts the type 1 LWC file (with no effective radius) to 
+  # a type 2 LWC file.
+
+  set lwc1file=les2y21.lwc     # type 1 LWC file
+  set lwc2file=les2y21.lwc2    # type 2 LWC file
+  set dropconc=50              # droplet concentration (/cm^3)
+  set alpha = 7                # gamma dist shape parameter
+
+    # Set the extra Z levels for the property file
+  set Zother=(0.000 0.050 0.100 0.150 0.200 0.250 0.300 0.350 0.400  0.850 0.900 0.950 1.000)
+  set Tother=(288.0 287.5 287.0 286.5 286.0 285.5 285.5 284.5 284.0  288.0 289.0 289.5 290.0)
+  set maxnewphase=30           # max number of new phase functions to make
+  set asymtol=0.01             # asymmetry parameter tolerance for new one
+  set fracphasetol=0.05        # max fractional error in function for new one
+  set raylcoef=0.0             # molecular Rayleigh scattering coefficient
+
+   # Make the type 2 LWC file: get the effective radius from the LWC
+  cat $lwc1file | $AWK -v conc=$dropconc -v alpha=$alpha \
+    '{if (NR==1) print "2 parameter LWC file"; if ((NR>1)&&(NR<6)) print $0;\
+      if (NR>5) {lwc=$4; re=3.0; if (lwc>0.0) \
+        re=100*(lwc*(0.75*(alpha+3)^2)/(3.14159*(alpha+1)*(alpha+2)*conc))^(1.0/3); \
+       print $1,$2,$3,lwc,re;} }' >! $lwc2file
+
+    # Run propgen to make the property file
+  put 1 $scattable 1 $lwc2file  $maxnewphase $asymtol $fracphasetol \
+      $raylcoef  $#Zother >! p.t
+  put $Zother >! z.t
+  put $Tother >! t.t
+  paste -d" " z.t t.t >>p.t
+  put $prpfile >> p.t
+  propgen <p.t 
+
+  rm -f p.t z.t t.t
+endif
+
+
+
+
+if ($RunSHDOM) then
+#   Run SHDOM for either solar or thermal radiative transfer
+
+  #   Set SHDOM parameters: 
+  set IPflag=0                # independent pixel flag (0 = 3D, 3 = IP)
+  set BCflag=0                # horizontal boundary conditions (0 = periodic)
+  if ($Solar) then
+    set Nmu=12                # number of zenith angles in both hemispheres
+    set Nphi=24               # number of azimuth angles
+    set deltaM=T              # use delta-M scaling for solar problems
+    set mu0=0.50              # solar cosine zenith angle
+    set phi0=0.0              # solar beam azimuth (degrees)
+    set flux0=1.0             # solar flux (relative)
+    set sfcalb=0.04           # surface Lambertian albedo
+    set splitacc=0.03         # adaptive grid cell splitting accuracy
+    set shacc=0.003           # adaptive spherical harmonic accuracy
+  else
+    set Nmu=8                 # number of zenith angles in both hemispheres
+    set Nphi=16               # number of azimuth angles
+    set deltaM=F              # don't use delta-M scaling 
+    set sfcemis=0.98          # surface emissivity
+    set Tsfc=288              # surface temperature (K)
+    set Tsky=0.0              # downwelling brightnes temperature
+    set splitacc=1.0
+    set shacc=0.03
+  endif
+  set solacc=1.0E-4           # solution accuracy
+  set accel=T                 # solution acceleration flag
+  set maxiter=100             # maximum number of iterations
+                      # input parameters for output radiances
+  set Routparm="1.0 0.055 1.0 0.0 0.0  7 \
+               1.0 0 0.966 0 0.866 0 0.707 0  0.966 180 0.866 180 0.707 180"
+  set Foutparm="2 0.750 0.055 1.0"
+
+  set nb=(`head -2 $prpfile | tail -1`)
+  echo " "; echo " "; 
+  if ($Solar) then
+    echo "$outbase :  wavelen=$wavelen  Nmu=$Nmu  split=$splitacc"
+    put les2y21w16 $prpfile NONE NONE NONE NONE "$nb[1] $nb[2] $nb[3]" \
+      "$Nmu $Nphi" $BCflag $IPflag $deltaM P S "$flux0 $mu0 $phi0" 0.0 \
+      $sfcalb $wavelen "$splitacc $shacc" "$accel $solacc $maxiter"  \
+      6 R $Routparm ${outbase}r.out  M 1 ${outbase}m.out \
+      S 1 ${outbase}s.out  F 1 ${outbase}f1.out \
+      F $Foutparm ${outbase}f2.out  F 4 ${outbase}f4.out \
+      NONE 10 3.0 1.0 1.5 | shdom90
+  else
+    echo "$outbase :  wavelen=$wavelen  Nmu=$Nmu  split=$splitacc"
+    put les2y21w107 $prpfile NONE NONE NONE NONE "$nb[1] $nb[2] $nb[3]" \
+      "$Nmu $Nphi" $BCflag $IPflag F P T $Tsfc $sfcemis $Tsky R $wavelen \
+      "$splitacc $shacc" "$accel $solacc $maxiter"  \
+      6 R $Routparm ${outbase}r.out  M 1 ${outbase}m.out \
+      S 1 ${outbase}s.out  F 1 ${outbase}f1.out \
+      F $Foutparm ${outbase}f2.out  F 4 ${outbase}f4.out \
+      NONE 10 3.0 1.0 1.5 | shdom90
+  endif
+endif

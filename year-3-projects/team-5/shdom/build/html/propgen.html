@@ -1,0 +1,164 @@
+<HTML>
+<HEAD>
+<TITLE>PROPGEN </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>PROPGEN </H2>
+
+Propgen generates an optical property file for SHDOM from a particle
+property file specifying the 3D distribution of mass content and
+effective radius for several types of particles.  The optical properties
+for these particle types are specified in scattering table files.  The
+optical properties are interpolated in effective radius within the
+scattering tables (logarithmically for extinction and linearly for
+single scattering albedo and phase function).  The extinction and
+single scattering albedo for the mixture specified at each grid point
+are calculated exactly.  The phase functions for the mixtures are
+approximate, however, because there is not enough memory to store a
+phase function for each grid point.  Instead, the closest phase function
+to the correct one is used.  If none of the phase functions in the
+scattering tables are within the user specified tolerances then the new
+mixture phase function is added to the list.  Tolerances are specified
+for the asymmetry parameter and the maximum fractional error in phase
+function values.
+<P>
+
+There are three parameters that control the creation of new phase
+functions.  The first is the maximum number of phase functions that may
+be created, which is designed to limit the memory use by SHDOM.  The
+second and third parameters are the tolerance in asymmetry parameter
+error and the tolerance in maximum fractional error in phase function
+values.  The maximum fractional phase function error is calculated at 90
+angles from 2 to 180 degrees, but this can be changed by changing the
+ "INTEGER, PARAMETER :: NANGLES=90" statement in propgen.f90.  Smaller
+values of the two tolerances will produce a more accurate property file,
+but at the expense of a larger number of phase functions.  If the
+property file is to be used only for flux computations then the
+asymmetry parameter tolerance is most important and the fractional phase
+function tolerance can be set large.  If the property file is to be
+used for radiance calculations then the fractional error in phase
+function tolerance is more important.  If you are outputting a
+one-dimensional property file, then you can set the tolerances to zero
+to get one phase function for each output level (actually the program
+has minimum values of 0.002 for the asymmetry parameter tolerance and
+0.01 for the fractional phase function tolerance).  Propgen only outputs
+the phase functions actually used in the property file, not all the ones
+in the scattering tables (like cloudprp did).  If 1000 or more phase 
+functions are going to be output then the format statement in subroutine
+OUTPUT_PROPERTIES will need to be changed.
+<P>
+
+In addition to the scattering properties from the input particles,
+propgen also calculates and includes molecular Rayleigh scattering.  The
+use specifies a Rayleigh scattering coefficient, which depends on
+wavelength (or the user may wish to simply set to zero for some
+applications).  The amount of molecular scattering depends on the air
+density.  Hence for a particular solar wavelength band a coefficient (k)
+may be defined which gives the extinction from the air pressure (p) and
+temperature (T):  ext = k p/T.  The Rayleigh scattering coefficient
+input to propgen may be derived from the molecular Rayleigh scattering
+optical depth.  The Rayleigh optical depth at sea level as a function of
+wavelength (lambda in micron) is 
+    tau = 0.0088*lambda**(-4.15+0.2*lambda)
+From this formula the propgen Rayleigh input coefficient is
+    k = (2.97E-4 K mb^-1 km^-1) lambda**(-4.15+0.2*lambda)
+Propgen uses the hypsometric relation to calculate the pressure profile
+from the input temperature profile.
+<P>
+
+Typically the high resolution cloud field occupies only small portion of
+the atmospheric profile and the other height levels are used to fill in
+the rest of the atmosphere.  The other height levels should be chosen
+according to the needs of SHDOM and the molecular absorption profile. 
+SHDOM needs some vertical resolution to resolve the radiance field.  If
+molecular Rayleigh scattering is significant, then the other levels
+must exist in clear sky to put that scattering in the property file. 
+Similarly, if a k-distribution file is giving the molecular absorption,
+then other levels must cover the range where the absorption is
+significant.  For example, stratospheric levels need to be included for
+ozone absorption in the ultraviolet.
+<P>
+
+
+               <h4> Particle Properties File </h4>
+
+The particle file specifies the three-dimensional distribution of mass
+content (g/m^3) and effective radius (microns) for each component type
+of particle.  Only the the particle types with nonzero mass content need
+to be specified at each grid point.  The particle file is an ascii text
+file with the following format:
+ <pre>
+   3            [format type]
+   Nx Ny Nz     [number of X, Y, Z grid points]
+   delX delY    [X and Y grid spacing in km]   
+   Z1 ... Zn    [heights of particle levels in km]
+   T1 ... Tn    [temperatures in Kelvin at these levels]
+   IX IY IZ  Numcomp  Type1 Mass1 Reff1 ... TypeN MassN ReffN
+    . . .
+</pre>
+ Numcomp is the number of particle components, Type? are the type
+numbers of the components, Mass? are the mass contents [g/m^3] of the
+components, and Reff? are the effective radii [microns] of the
+components.  See file "nauru19990707.part" in the distribution for an
+example particle file.  In addition to this new particle file format,
+propgen can read the old 2 parameter LWC files that cloudprp used.
+<P>
+
+             <h4> Scattering Table Format </h4>
+
+The scattering tables have a six line header.  Propgen only reads the
+wavelength range in the second header line and the number of effective
+radii on the sixth header line.  After the header, for each effective
+radius entry in a scattering table, there is one line with the effective
+radius, the volume extinction coefficient (km^-1 for a mass content of 1
+g/m^3), the single scattering albedo, and the order (Nleg) of the
+Legendre series of the phase function.  The next line or several lines
+contain the Nleg+1 Legendre series coefficients, starting with chi0
+(which must be equal to 1).  For an example scattering table, see one
+of the scattering table files produced by the example script.  Propgen
+can read the Mie tables produced by cloudprp if the wavelength range is
+put in the second line (instead of just the central wavelength) using a
+text editor.
+<P>
+
+
+   <H4> Input Parameters </H4>
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+<tr><td valign="TOP">
+NSCATTAB       </td><td> number of input scattering tables (number of pure components) </td></tr>
+<tr><td valign="TOP">
+SCATTABFILES() </td><td> name of each scattering table file </td></tr>
+<tr><td valign="TOP">
+SCATNUMS()     </td><td> index or particle type of each scattering table (these type 
+                          numbers must match the types in the particle file) </td></tr>
+<tr><td valign="TOP">
+PARFILE        </td><td> input particle properties filename </td></tr>
+<tr><td valign="TOP">
+MAXNEWPHASE    </td><td> maximum number of new phase functions created </td></tr>
+<tr><td valign="TOP">
+ASYMTOL        </td><td> tolerance in asymmetry parameter for creating a 
+                           new phase function </td></tr>
+<tr><td valign="TOP">
+FRACPHASETOL   </td><td> maximum fractional error tolerance in phase function value 
+                           for creating a new phase function </td></tr>
+<tr><td valign="TOP">
+RAYLCOEF       </td><td> molecular Rayleigh scattering coefficient (K/(km mb)) </td></tr>
+<tr><td valign="TOP">
+NZO            </td><td> number of extra height levels output in property file
+                  (in addition to those in the particle file) </td></tr>
+<tr><td valign="TOP">
+ZOTHER()       </td><td> heights (km) of other levels </td></tr>
+<tr><td valign="TOP">
+TEMPOTHER()    </td><td> temperatures (K) of other levels  </td></tr>
+<tr><td valign="TOP">
+PROPFILE       </td><td> output SHDOM property file name </td></tr>
+</table>
+
+<P>
+
+</BODY>
+</HTML>

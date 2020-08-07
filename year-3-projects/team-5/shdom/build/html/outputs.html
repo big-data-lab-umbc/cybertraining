@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Output Formats</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Output Formats</H2>
+
+
+    The output goes to a number of plain text files (except for the
+visualization and netcdf output), each containing a header listing the
+input parameters.  The header also lists the number of iterations taken,
+which for a k-distribution is the total number over the distribution
+sum.  There are seven output types:   
+ <UL>
+  <LI> R - radiance,
+  <LI> V - visualization,
+  <LI> F - hemispheric flux,
+  <LI> H - net flux convergence (heating rate),
+  <LI> S - spherical harmonic output,
+  <LI> J - source function, and
+  <LI> M - medium properties.
+ </UL>
+Any number of ascii files maybe output during a single run.  
+<P>
+
+A single netcdf output file may be specified in addition to, or instead
+of, the ascii output files.  The netcdf file contains all the output
+types of the specified ascii files.  If the ascii files are not desired,
+then use NONE for each of the ascii file names.  The output in the
+netcdf file is arranged somewhat differently from the ascii files.  For
+all of the output on a grid, X is the fastest moving index, and Z is the
+slowest.  The total downward flux and downward diffuse flux are output,
+rather than the downward diffuse and direct flux separately, as in the
+ascii files.  Only those output formats allowed with multiple processors
+are supported in the netcdf output.  Specifically, the V, J, and M
+formats are not supported, nor is the F 2 format, nor any output on the
+adaptive grid (i.e. F, H, and S outputs are only on the base grid).  All
+of the information in the header of the ascii files is included as
+global attributes in the netcdf file.  The netcdf output requires using
+the Fortran 90 driver (shdom90.f90).  The shdom_netcdf module was
+written by Robert Pincus (December 2008).
+<P>
+
+The radiance output computes the radiance at a single vertical level for
+a regular grid of locations for a series of directions.  There are two
+visualization output modes, both of which make PDS format images. The
+first one simulates a fixed position camera, while the second simulates
+a cross track scanning instrument flying on an airplane.  For the camera
+mode the inputs are the position and pointing direction of the camera,
+the number of pixels vertically and horizontally, and the pixel spacing.
+For the cross track scanning mode the inputs are the starting and ending
+aircraft positions, the distance along track beween scans, and the range
+of scan angles (<0 for left side, > 0 for right side).  The PDS image
+format has a human readable ascii header followed by the pixel values in
+straight binary format (from left to right and then top to the bottom of
+the image).  The pixel format may be byte (values 0 to 255) or two byte
+integers (values -32768 to 32767).  PDS format byte images may be viewed
+with "xv" on some Unix systems and an IDL program, pdstojpeg.pro, is
+provided to convert the PDS images to JPEG format.
+<P>
+
+  There are several ways to output hemispheric flux, including and the top
+and bottom of the domain, on a regular horizontal grid at any level, or
+for every grid point.  The net flux convergence may be output for each
+grid point or for a domain averaged vertical profile.  The spherical
+harmonic output is the mean  radiance and net flux vector (proportional
+to the first 4 terms in the spherical harmonic expansion) and for solar
+problems includes the direct beam contribution.
+ The source function output lists the extinction and source function
+computed for a specified direction at every grid point. This can be
+useful for use by another program such as to compute limb  radiances in
+a spherical geometry.  The medium properties output lists  the
+(potentially delta-M scaled) extinction, single scattering albedo, 
+asymmetry parameter, and temperature at the grid points, and is useful 
+for making sure the medium was input correctly.
+<P>
+
+    There is a debugging output file format containing GLE graphics
+commands to draw the grid cells and arrows showing the neighboring cell
+relationships for an XZ plane. If this is desired, comment in the call
+to VISUALIZE_CELLS after the solution iteration loop.
+
+</BODY>
+</HTML>

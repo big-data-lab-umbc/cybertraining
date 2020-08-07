@@ -1,0 +1,166 @@
+#!/bin/csh
+# Script for demonstrating the new SHDOM optical properties generation system.
+# First make each type of scattering table, then make the property file,
+# and then run SHDOM.
+set AWK=awk   # use nawk on SGI and Sun
+
+
+set MakeAerosolTable=0       # set to 1 to run the desired section
+set MakeWaterTable=0
+set MakeIceTables=0
+set PlotScatTables=0
+set MakePropertyFile=0
+set RunSHDOM=0
+
+
+set wavename=164   # 065 for 0.65 um or 164 for 1.64 um wavelength
+
+if ($wavename == 065) then
+  set wavelen1=0.62 ; set wavelen2=0.67
+  set wavelen=0.65
+endif
+if ($wavename == 164) then
+  set wavelen1=1.63 ; set wavelen2=1.65
+  set wavelen=1.64
+endif
+
+
+# Compile the "put" command
+if (!(-e put))  cc -o put  put.c
+
+
+if ($MakeAerosolTable) then
+  #  Makes a Mie scattering table for spherical aerosol particles for 
+  # lognormal size distributions with a range of effective radius. 
+  set outfile = "dust_w${wavename}.scat"
+  set partype = "A"               # A for aerosol
+  if ($wavename == 065) then
+    set refindex="(1.55,-0.01)"    # an index of refraction for dust aerosol
+  endif
+  if ($wavename == 164) then
+    set refindex="(1.55,-1.0E-5)"  # an index of refraction for dust aerosol
+  endif
+  set pardens=2.0                  # particle bulk density (g/cm^3)
+  set distflag=L                   # G=gamma, L=lognormal size distribution
+  set sigma = 0.70                 # lognormal log standard deviation
+  set Nretab=30                    # number of effective radius in table
+  set Sretab=0.1; set Eretab=3.0   # starting and ending effective radius (micron)
+  set maxradius=15.0
+
+  put "$wavelen1 $wavelen2" $partype "$refindex" $pardens $distflag $sigma \
+      "$Nretab $Sretab $Eretab" $maxradius $outfile | make_mie_table
+endif
+
+
+
+if ($MakeWaterTable) then
+  #  Makes the Mie scattering table for spherical water droplets for
+  # gamma size distributions with a range of effective radius. 
+  set outfile = "water_w${wavename}c.scat"
+  set partype = "W"                # W for water
+  set distflag=G                   # G=gamma, L=lognormal size distribution
+  set alpha = 7                    # gamma dist shape parameter
+  set Nretab=40                    # number of effective radius in table
+  set Sretab=0.5; set Eretab=20    # starting, ending effective radius (micron)
+  set maxradius=50
+  set avgflag=C                    # A for averaging over wavelength range
+                                   #  C for using central wavelength
+  set deltawave=0.003              # wavelength step for averaging (microns)
+
+  if ($avgflag == "A") then
+    put "$wavelen1 $wavelen2" $partype $avgflag $deltawave $distflag $alpha \
+      "$Nretab $Sretab $Eretab" $maxradius $outfile | make_mie_table
+  else
+    put "$wavelen1 $wavelen2" $partype $avgflag $distflag $alpha \
+      "$Nretab $Sretab $Eretab" $maxradius $outfile | make_mie_table
+  endif
+endif
+
+
+
+if ($MakeIceTables) then
+  #  Makes scattering tables for several ice particle shapes for 
+  # gamma size distributions with a range of effective radius. 
+  #    Shape index:
+  #      1=hollow column, 2=solid column, 3=plate, 4=dendrite
+  #      5=rough aggregate, 6=smooth aggregate, 7=bullet-4, 8=bullet-6
+  #
+  foreach iceshape (3 5)
+    set outfile = "ice${iceshape}_w${wavename}.scat"
+    set alpha = 2                   # gamma dist shape parameter
+    set Nretab=10                   # number of effective radius in table
+    set Sretab=10; set Eretab=100   # starting and ending effective radius (micron)
+
+    put sw_ice_scatter.db "$wavelen1 $wavelen2" $iceshape \
+      "$Nretab $Sretab $Eretab" $alpha $outfile | make_ice_table
+  end
+endif
+
+
+
+if ($PlotScatTables) then
+  # Produce plotting files of phase function vs angle with plotscattab
+   
+   put S dust_w${wavename}.scat 181 6 "0.5 1.0 1.5 2.0 2.5 3.0" dust_w${wavename}.scatgrf | plotscattab 
+   put S water_w${wavename}c.scat 361 4 "5 10 15 20" water_w${wavename}c.scatgrf | plotscattab 
+   put S ice3_w${wavename}.scat 361 5 "20 40 60 80 100" ice3_w${wavename}.scatgrf | plotscattab 
+   put S ice5_w${wavename}.scat 361 5 "20 40 60 80 100" ice5_w${wavename}.scatgrf | plotscattab 
+endif
+
+
+
+if ($MakePropertyFile) then
+  # Runs propgen to make the SHDOM optical property file for a particle 
+  # property file specifying the mass content and effective radius for
+  # a mixture of particle types.
+
+  set parfile=nauru19990707.part
+  set prpfile=nauru19990707_w${wavename}.prp
+
+  set scattables = (dust_w${wavename}.scat water_w${wavename}c.scat \
+                    ice3_w${wavename}.scat ice5_w${wavename}.scat)
+  set scattypes = (1 2 3 4)
+  set maxnewphase=100
+  set asymtol=0.01
+  set fracphasetol=0.1
+  if ($wavename == 065) then
+    set raylcoef=0.00168
+  endif
+  if ($wavename == 164) then
+    set raylcoef=0.0
+  endif
+
+  set Nzother=3
+  set ZTother=(6.0 264  17.0 195  25.0 221)
+
+  put $#scattables $scattables "$scattypes" $parfile \
+      $maxnewphase $asymtol $fracphasetol $raylcoef \
+      $Nzother $ZTother $prpfile  | propgen
+endif
+
+
+
+
+if ($RunSHDOM) then
+   # Run SHDOM to perform solar radiative transfer to compute radiances
+  set prpfile=nauru19990707_w${wavename}.prp
+  set radfile=nauru19990707_w${wavename}.radout
+  # Set SHDOM parameters
+  set mu0=0.707;  set phi0=0.0;      set flux0=1.0
+  set sfcalb=0.0
+  set Nmu=16;  set Nphi=32
+  set BCflag=0;  set IPflag=0;   set DeltaM=T
+  set splitacc=0.01;  set shacc=0.0
+  set solacc=1.0E-4;  set accel=T;   set maxiter=100
+  set Routparm=(17.0 0.2 1.0 0.0 0.0  \
+                5 0.866 180  0.966 180  1.0 0.0  0.966 0.0  0.866 0.0)
+
+  set Nx=`$AWK 'BEGIN {getline; getline; print $1;}' $prpfile`
+  set Nz=`$AWK 'BEGIN {getline; getline; print $3;}' $prpfile`
+  put nauru19990707 $prpfile NONE NONE NONE NONE "$Nx 1 $Nz" "$Nmu $Nphi" \
+      $BCflag $IPflag $DeltaM  P S "$flux0 $mu0 $phi0" 0.0 $sfcalb $wavelen \
+      "$splitacc $shacc" "$accel $solacc $maxiter" \
+      1 R $Routparm $radfile NONE 50 2.5 1.0 1.5 | shdom90
+endif
+
+

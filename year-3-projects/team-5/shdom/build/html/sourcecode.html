@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Source Code Options</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Source Code Options</H2>
+
+This is a list of options in the operation of SHDOM that one may select
+by making trivial code changes.  Except for selecting the NAMELIST
+option, choosing netcdf property file input, adding a new surface type,
+the higher order radiance terms, or turning on processor load balancing,
+most of these would only be changed to experiment with the operation of
+the SHDOM algorithm.
+<P>
+
+    Namelist input: main program (shdom.f or shdom90.f90); Comment out
+the call to USER_INPUT and uncomment the call to NAMELIST_INPUT.  
+<P>
+
+    NetCDF property file input: main program (shdom90.f90); Comment out
+calls to READ_PROPERTY_SIZE, and READ_PROPERTIES and uncomment calls to
+read_property_size_netcdf and read_properties_netcdf.  Use the makefile
+to compile with the netcdf library.
+<P>
+
+    Adding surface reflection types: in shdomsub2.f write a BRDF
+Fortran function modeled on RPV_REFLECTION and add a call in
+SURFACE_BRDF to the new function.  If it is a specular type, update
+SPECULAR_SURFACE.  In shdomsub3.f modify subroutine READ_SURFACE by
+adding a block to read in the new surface type parameters.
+<P>
+
+    Output rms of higher order radiance spherical harmonic terms:      
+at top of main program (shdom.f); set HIGHORDERRAD=.TRUE. for outputing
+the rms of the higher order radiance terms (above L=1,M=1) normalized by
+the mean radiance (S output mode).  This is useful for determining
+regions in the diffusion domain, where the higher order terms are zero.
+Make sure to change the declaration SUMSHTERMS(4*MAXIG) in shdom.f
+to SUMSHTERMS(5*MAXIG) to make room for the extra term.  Since all the
+radiance spherical harmonic terms are kept the running time may be
+somewhat longer, and the memory use (RADIANCE array) can be much larger.
+<P>
+
+    Discrete ordinate angle set: SOLVE_RTE (shdomsub1.f); The ORDINATESET
+variable before call to MAKE_ANGLE_SET is the type of angle set: 1 - full
+Gaussian set, 2 - reduced Gaussian set (default), 3 - reduced double Gaussian.
+Using the double Gaussian angular set will give more accurate hemispheric
+fluxes, e.g. from a Lambertian surface.
+<P>
+
+    Multiple processor load balancing: Change LoadBalance=.TRUE. at the
+beginning of shdom_mpi.f90 (see the last paragraph of the multiple
+processing section).
+<P>
+
+    k-distribution initialization: at top of main program (shdom.f); 
+Change BASEOUT = .TRUE. to initiatize with and output only the base
+grid during the iteration over k's, rather than the default of
+initializing with the previous k's adaptive grid structure.
+<P>
+
+    Cell splitting scheduling: SOLVE_RTE (shdomsub1.f); The range of 
+solution criterion during which the adaptive grid cell splitting occurs
+can be chosen by changing ENDADAPTSOL and STARTADAPTSOL; other aspects
+of the scheduling can be changed as well.
+<P>
+    Adaptive grid smoothing: SPLIT_GRID (shdomsub1.f); The call to 
+subroutine GRID_SMOOTH_TEST may be commented out to stop the adaptive
+grid smoothing. This will produce somewhat fewer adaptive cells, but
+make a somewhat more irregular grid.
+<P>
+    Cell splitting visualization: SOLVE_RTE (shdomsub1.f); The
+subroutine VISUALIZE_CELLS may be commented in after the solution loop
+to produce  a GLE graphics file showing the adaptive cell structure. 
+This can be changed easily for other graphics languagues.  The
+subroutine OUTPUT_CELL_SPLIT may be commented in to output the medium
+extinction and adaptive cell splitting criterion for X, Y, and Z.
+<P>
+
+    Cutoff transmission for back tracing: PATH_INTEGRATION (shdomsub1.f); 
+The TRANSMIN variable can be changed (e.g. from 1.0 to 0.1) to have the
+back ray tracing continue until the specified transmission is reached.
+This can eliminate the grid radiance interpolation error, but can take
+much more CPU time.
+
+</BODY>
+</HTML>

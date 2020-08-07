@@ -1,0 +1,119 @@
+#!/bin/csh
+#   Runs monochromatic solar and thermal radiative transfer using SHDOM
+# on the 3D gaussian extinction test field in the SHDOM journal article.
+# Makes the Mie table, makes the LWC file with awk, runs propgen to make 
+# the tabulated property file, and then shdom90 to do the radiative transfer.
+set AWK=awk   # use nawk on SGI and Sun
+
+
+set Solar=1     # 1 for solar, 0 for thermal
+
+# Select the sections of the script to run
+set MakeMieTable=1
+set MakeLWC=1
+set MakePropertyFile=1
+set RunSHDOM=1
+
+
+#  Set the domain size and spacing
+set Nx=20;  set Ny=20;  set Nz=11;  set delta=0.10
+
+if ($Solar) then
+  set lwcfile="gaussol.lwc"
+  set prpfile="gaussol.prp"
+  set maxext=0.0282
+  set wavelen=2.13
+  #set wavelen=1.65
+  set scattable="water_w16c_re10.scat"
+else
+  set lwcfile="gaustherm.lwc"
+  set prpfile="gaustherm.prp"
+  set maxext=0.03379
+  set wavelen=10.7
+  set scattable="water_w107c_re10.scat"
+endif
+
+
+# ----------------------------------  Start of Processing
+
+
+if ($MakeMieTable) then
+  #  Makes the Mie scattering table for water droplets for one effective radius
+
+  set distflag=G                   # G=gamma, L=lognormal size distribution
+  set alpha = 17                    # gamma dist shape parameter
+  set Nretab=1                     # number of effective radius in table
+  set Sretab=12; set Eretab=12     # starting, ending effective radius (micron)
+  set maxradius=50                 # maximum radius in distribution (micron)
+  set partype = "W"                # W for water
+  set avgflag=C                    # C for using central wavelength
+
+  put "$wavelen $wavelen" $partype $avgflag $distflag $alpha \
+     "$Nretab $Sretab $Eretab" $maxradius $scattable | make_mie_table
+endif
+
+
+
+if ($MakeLWC) then
+  #  Make the LWC file with the gaussian extinction field, Reff=10 um 
+  $AWK -v nx=$Nx -v ny=$Ny -v nz=$Nz -v del=$delta \
+    'BEGIN {printf "%1.0f\n%3.0f %3.0f %2.0f\n%6.3f %6.3f\n", 2, nx, ny, nz, del, del;}'  >! $lwcfile
+  $AWK -v nz=$Nz -v del=$delta  'BEGIN {for (i=0; i<nz; i++) {printf "%6.3f ", i*del}; printf "\n"; for (i=0; i<nz; i++) {printf "%5.1f ", 265.0-5.0*i/(nz-1)}; printf "\n";} ' >> $lwcfile
+  $AWK -v nx=$Nx -v ny=$Ny -v nz=$Nz -v del=$delta  -v maxext=$maxext  \
+    'BEGIN {for (i=0; i<nx; i++) for (j=0; j<ny; j++) for (k=0; k<nz; k++) \
+    {x=del*(i-nx/2); y=del*(j-ny/2); z=del*(k-(nz-1)/2);  \
+    ext=maxext*exp(-(x/0.5)^2-(y/0.5)^2-(z/0.25)^2);  \
+    printf "%2.0f %2.0f %2.0f %9.3E %2.0f\n", i+1, j+1, k+1, ext, 10;} }' >> $lwcfile
+endif
+
+
+if ($MakePropertyFile) then
+    # Run propgen to make the property file
+
+  set maxnewphase=0           # max number of new phase functions to make
+  set asymtol=0.01            # asymmetry parameter tolerance for new one
+  set fracphasetol=0.05       # max fractional error in function for new one
+  set raylcoef=0.0            # molecular Rayleigh scattering coefficient
+
+  put 1 $scattable 1 $lwcfile  $maxnewphase $asymtol $fracphasetol \
+      $raylcoef  0 $prpfile | propgen
+endif
+
+
+
+if ($RunSHDOM) then
+  #   Set the SHDOM parameters: 
+  set nx=20; set ny=20; set nz=11
+  set Nmu=16; set Nphi=32
+  set splitacc=0;  set shacc=0.0
+
+  set IPflag=0;  set BCflag=0
+  set solacc=1.0E-5;  set accel=T;   set maxiter=100
+  set Routparm="1.0 0.20 0.20 0 0 3 1.00 0 0.50 0 0.707 150"
+
+  if ($Solar) then
+    set outbase="gaussol"
+    set mu0=0.707;  set phi0=0.0;  set flux0=1.0
+    set deltaM=T
+    set sfcalb=0.0
+    put gaussol $prpfile NONE NONE NONE NONE "$nx $ny $nz" "$Nmu $Nphi" \
+      $BCflag $IPflag $deltaM E S "$flux0 $mu0 $phi0" 0.0 $sfcalb $wavelen \
+      "$splitacc $shacc" "$accel $solacc $maxiter"  \
+      5  R $Routparm ${outbase}r.out  H 2 ${outbase}h.out \
+      F 1 ${outbase}f1.out  F "2 0.5 0.1 0.1"  ${outbase}f2.out \
+      F 4 ${outbase}f4.out NONE 20 1.0 1.0 2.0 | shdom90
+  else
+    set outbase="gausth"
+    set Tsfc=295;   set sfcemis=1.0
+    set wavelen=10.7
+    set deltaM=F
+    put gausth $prpfile NONE NONE NONE NONE "$nx $ny $nz" "$Nmu $Nphi" \
+      $BCflag $IPflag $deltaM E T $Tsfc $sfcemis 0.0 R $wavelen \
+      "$splitacc $shacc" "$accel $solacc $maxiter" \
+      5  R $Routparm ${outbase}r.out  H 2 ${outbase}h.out \
+      F 1 ${outbase}f1.out  F "2 0.5 0.1 0.1"  ${outbase}f2.out \
+      F 4 ${outbase}f4.out NONE 20 1.0 1.0 2.0 | shdom90
+  endif
+endif
+
+

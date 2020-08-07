@@ -1,0 +1,128 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM Correlated k-Distribution Programs</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM Correlated k-Distribution Programs</H2>
+
+
+Three k-distribution programs are distributed with SHDOM to include the
+effects of molecular absorption in a broadband spectral integration. 
+These programs read one atmospheric profile file (with pressure,
+temperature, water vapor, and ozone profiles) and produce an SHDOM CKD
+file.  An SHDOM CKD file contains absorption coefficient profiles for
+each "k" in each spectral band in the k-distribution, along with some
+other information (see shdom.txt).  The example Unix script
+run_kdist_les has examples of using CKD programs, the wavenumber and
+wavelength ranges of the spectral bands, and the Rayleigh molecular
+scattering coefficients for each band (input to propgen).
+<P>
+
+Two of the programs, <tt>ckdlwrrtm</tt> and <tt>ckdswrrtm</tt>, are
+derived from the longwave and shortwave Rapid Radiative Transfer Models
+(RRTM) developed at Atmospheric and Environmental Research, Inc,
+principally by Eli Mlawer (see <tt>http://www.rtweb.aer.com</tt>). The
+longwave CKD program is from the original RRTM version, not the new
+version first released in 2002. The longwave RRTM reference is:
+  <BLOCKQUOTE>
+   Mlawer, E.J., S.J. Taubman, P.D. Brown,  M.J. Iacono and S.A. Clough:
+   RRTM, a validated correlated-k model for the longwave. 
+   J. Geophys. Res., 102, 16,663-16,682, 1997 
+  </BLOCKQUOTE>
+ Both the longwave and shortwave CKD programs do not exactly  match the
+original RRTM algorithms because the SHDOM k-distribution model is
+different.  The SHDOM model is that the temperature profile and
+scattering properties are independent of the "k" within each spectral
+band.  The radiative transfer results based on <tt>ckdlwrrtm</tt> and
+<tt>ckdswrrtm</tt> do agree closely with the RRTM programs (fluxes
+within 1 - 2 W/m^2).    <P>
+
+The third program, <tt>ckdfu</tt>, makes an SHDOM CKD file for both the
+shortwave and longwave, and is derived from Fu and Liou's original
+correlated k-distribution described in the article:
+  <BLOCKQUOTE>
+   Fu, Qiang and K. N. Liou, 1992: On the Correlated k-Distribution 
+   Method for Radiative Transfer in Nonhomogeneous Atmospheres. 
+   J. Atmos. Sci., 49, 2139-2156.
+  </BLOCKQUOTE>
+This version is not the much upgraded "Fu and Liou" k-distribution used
+by the CERES program at NASA Langley.  This older k-distribution
+parameterization has a number of deficiencies, including using one band
+for the ultraviolet and the visible, using the outdated Roberts et al.
+(1976) water vapor continuum, and missing trace absorbing species.  Thus
+it is considerably less accurate than the RRTM based programs, however,
+it is substantially cheaper to run because it has fewer k's, and is
+appropriate for some theoretical experiments (e.g. where differences
+between SHDOM runs are being investigated).  The size of the
+k-distributions in the three programs is summarized below.
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Program </th>
+     <th align=right> Shortwave </th> <th>  </th>  
+     <th align=right> Longwave </th> <th>  </th> </tr>
+<tr> <th align=left>  </th>
+     <th align=center> Bands </th>   <th align=center>  k's </th>
+     <th align=center> Bands </th>   <th align=center>  k's </th> </tr>
+<tr><td valign="TOP">
+   <tt>ckdlwrrtm</tt> </td><td>    </td><td>     </td><td align=center> 16 </td><td align=center> 256 </td></tr>
+<tr><td valign="TOP">
+   <tt>ckdswrrtm</tt> </td><td align=center> 14 </td><td align=center> 224 </td><td>    </td><td>     </td></tr>
+<tr><td valign="TOP">
+   <tt>ckdfu</tt>     </td><td align=center>  6 </td><td align=center>  54 </td><td align=center> 12 </td><td align=center>  67 </td></tr>
+</table>
+The number of k's is the total number of monochromatic radiative
+transfer calculations that SHDOM must perform across the longwave or
+shortwave.
+
+
+
+             <H4> Input Parameters </H4>
+
+The inputs are the same for all three CKD programs.
+
+<table border=0 cellpadding=2 cellspacing=2>
+<tr> <th align=left> Parameter</th>  <th align=left> Description </th>  </th></tr>
+<tr><td valign="TOP">
+ATMFILE    </td><td> Atmospheric profile file name </td></tr>
+<tr><td valign="TOP">
+OUTFILE    </td><td> CKD file for SHDOM </td></tr>
+<tr><td valign="TOP">
+UMCO2      </td><td> Concentration of CO2 in ppmv </td></tr>
+<tr><td valign="TOP">
+UMCH4      </td><td> Concentration of CH4 in ppmv </td></tr>
+<tr><td valign="TOP">
+UMN2O      </td><td> Concentration of N2O in ppmv </td></tr>
+</table>
+
+             <H4> Atmospheric File Format </H4>
+
+The atmospheric file specifies the profile of temperature, pressure,
+water vapor and ozone.  Each row of the file contains an atmospheric
+level, starting at the top of the atmosphere and ending at the surface.
+As an example, the US standard atmosphere is included in the SHDOM
+distribution (usatm.dat).  The format is ascii text with six columns:
+<PRE>
+  Height  Pressure  Temperature  Air_density  Vapor_density  Ozone_density
+   (km)     (mb)       (K)        (g/m^3)        (g/m^3)        (g/m^3)      
+</PRE>
+
+<P>
+
+                  <H4> CKD Output File </H4>
+
+There are three sections of the output file.
+<OL>
+ <LI> The band information: number of bands and for each band
+   the wavenumber range (cm^-1), solar flux (W/m^2), 
+   number of g's (or k's), and delta g values (weights).
+ <LI> The atmosphere information: the concentration of CO2, CH4, N2O,
+   and for each level (from the top down) the height (km), 
+   pressure (mb), temperature (K), mixing ratio of water vapor and ozone.
+ <LI> The absorption coefficients: each line contains the
+   band number, level number (from top down), and k's for the g's.
+</OL>
+
+</BODY>
+</HTML>

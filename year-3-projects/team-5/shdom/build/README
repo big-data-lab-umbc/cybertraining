@@ -1,0 +1,90 @@
+
+This tar file contains the Spherical Harmonic Discrete Ordinate Method
+(SHDOM) radiative transfer model written by Frank Evans at the
+University of Colorado.  This model computes unpolarized monochromatic
+or spectral band radiative transfer in a one, two, or three-dimensional
+medium for either collimated solar and/or thermal emission sources of
+radiation.  The model is written in a variant of Fortran 77 and parts
+are also in Fortran90.  The distribution also contains Fortran 90
+programs for generating the optical property files input to SHDOM from
+physical properties of water and ice cloud particles and aerosols.  Two
+k-distribution parameterizations are included for performing broadband
+shortwave and longwave radiative transfer.
+
+The distribution is available from http://nit.colorado.edu.  This Web
+site also contains results of validation testing, examples useful for
+learning how to run the model, and a PDF version of journal articles.
+
+
+The following is a list of the files:
+
+  README             this file
+
+  shdom.txt          documentation file for SHDOM
+  shdom.f            main program, large arrays allocated here
+  shdom90.f90        main program, Fortran 90 for allocatable arrays
+  shdomsub1.f        subroutines used during solution procedure
+  shdomsub2.f        subroutines used before or after solution procedure
+  shdomsub3.f        input/output subroutines 
+  shdom_mpi.f90      subroutines that make MPI calls
+  shdom_nompi.f      dummy routines for not using MPI
+  shdom_netcdf.f90   subroutines that make netcdf calls
+  shdom_nonetcdf.f90 dummy routines for not using netcdf
+  fftpack.f          Fast Fourier Transform routines
+  ocean_brdf.f       ocean surface reflectance routines
+
+  propgen.txt        documentation for the optical property generation system
+  make_mie_table.f90 makes scattering table for spherical particles
+  mieindsub.f        subroutines for Mie scattering, water/ice index
+  make_ice_table.f90 makes scattering table for Ping Yang's ice crystals
+  sw_ice_scatter.db  ice crystal scattering database for make_ice_table
+                        (distributed separately from the tar file)
+  plotscattab.f90    makes phase functions versus angle from scattering table
+  propgen.f90        makes SHDOM property file from particle properties file
+  cloudprp.f         obsolete program to make water cloud property files
+
+  ckd.txt            documentation file for k-distribution programs
+  ckdswrrtm.f        makes CKD file with shortwave RRTM k-distribution
+  swrrtm_kdata.f     shortwave RRTM k-distribution data
+  ckdlwrrtm.f        makes CKD file with longwave RRTM k-distribution
+  lwrrtm_kdata.f     longwave RRTM k-distribution data
+  ckdfu.f            program to make CKD file using Fu and Liou k-distribution
+  fukdata.f          Fu and Liou correlated k-distribution data
+
+  makefile           Unix makefile for compiling shdom and companion programs
+
+  run_mono_les       script to do monochromatic solar or thermal RT in a cloud
+  run_kdist_les      script to do broadband shortwave or longwave RT in a cloud
+  run_3dgaus         script to run solar and thermal 3D gaussian test
+  run_propgen_example  script to make scattering tables and property files
+                         for particle mixtures (aerosol, water and ice clouds)
+  run_rpv_brdf       script for using RPV surface reflection
+  run_ocean_brdf     script for using Ocean surface reflection
+  run_visualize      script demonstrating SHDOM visualization image output
+  run_multproc       script demonstrating SHDOM with multiple processors on SMP
+  put.c              small C program for scripts
+
+  lesw16.nml         example namelist input file
+  les2y21.lwc        old style LWC file for cloudprp (2D slice of LES field)
+  les_stcu.lwc       old style LWC file that propgen can read (full LES field)
+  era0621nh12_t21.lwc old style LWC file (large grid sparse cumulus LES field)
+  nauru19990707.part example new particle properties file
+
+  usatm.dat          US standard atmosphere for k-distribution programs
+
+  idl/           directory of IDL files for reading and visualizing SHDOM files
+                   See shdom1dplots.pro, shdom2dplots.pro, and
+                       plot_propgen_example.pro
+  html/          directory of HTML files with browsable versions of
+                   shdom.txt, propgen.txt, and ckd.txt.  
+                   Start at index.html.
+
+  Updatelist.txt  list of distribution dates with bug fixes and updates made
+
+
+Comments, bug reports, and suggestions are welcome.  
+
+    Frank Evans           March 9, 2009
+    Program in Atmospheric and Oceanic Sciences
+    University of Colorado, Boulder 80309-0311
+    evans@nit.colorado.edu     (303) 492-4994

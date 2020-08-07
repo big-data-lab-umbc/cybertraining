@@ -1,0 +1,45 @@
+<HTML>
+<HEAD>
+<TITLE>SHDOM: Terminology </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF TEXT="#000000">
+
+<H2>SHDOM: Terminology </H2>
+
+The medium properties (extinction, single scattering albedo, Legendre
+expansion of the phase function, temperature) are input at grid points
+from a "property file".  These fields are defined spatially (X, Y, and Z
+spacing) by the "property grid", which is defined by the input file and
+is not the actual spatial grid used for computatations.  The internal
+grid used for computation has two components: the "base grid" is 
+regularly spaced (even in X and Y, even or not in Z) and is defined by
+input parameters NX, NY, NZ, and GRIDTYPE;  the "adaptive grid" is all
+the grid cells including those defined by subdividing the base grid
+cells.  New cells are made by "cell splitting", which is the process of 
+figuring out which cells need to be subdivided and dividing them in half
+to create new grid points.  The "sequence acceleration" is a method to
+reduce the number of iterations by extrapolating the source function to
+where it is hoped the ultimate solution is.  The iterations proceed
+until the "solution criterion" is reached, when the source function is
+changing by sufficiently small amounts that convergence is declared.
+
+<P>
+
+The "spherical harmonic terms" are the series expansion of the angular
+dependence of the source function.  The angular dependence is also 
+represented by "discrete ordinates", which are discrete directions
+(mu_i, phi_i) at which the source function or radiance is specified.
+Angles are specified by mu, which is the cosine of the zenith angle,
+and phi, which is the azimuth angle, counter-clockwise from the X axis.
+"Delta-M scaling" is a standard method of reducing the forward
+scattering peak in the phase function, by scaling the phase function,
+single scattering albedo, and extinction so the solution to the
+radiative transfer equation is the same.  The "independent pixel"
+approximation is a standard method of solving for horizontal domain
+averaged radiative properties of an inhomogeneous medium by averaging
+the results of 1D radiative transfer on separate columns.
+
+
+</BODY>
+</HTML>

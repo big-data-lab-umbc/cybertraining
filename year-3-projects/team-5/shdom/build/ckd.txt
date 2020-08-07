@@ -1,0 +1,95 @@
+
+             SHDOM Correlated k-Distribution Programs
+
+
+Three k-distribution programs are distributed with SHDOM to include the
+effects of molecular absorption in a broadband spectral integration. 
+These programs read one atmospheric profile file (with pressure,
+temperature, water vapor, and ozone profiles) and produce an SHDOM CKD
+file.  An SHDOM CKD file contains absorption coefficient profiles for
+each "k" in each spectral band in the k-distribution, along with some
+other information (see shdom.txt).  The example Unix script
+run_kdist_les has examples of using CKD programs, the wavenumber and
+wavelength ranges of the spectral bands, and the Rayleigh molecular
+scattering coefficients for each band (input to propgen).
+
+Two of the programs, ckdlwrrtm and ckdswrrtm, are derived from the
+longwave and shortwave Rapid Radiative Transfer Models (RRTM) developed
+at Atmospheric and Environmental Research, Inc, principally by Eli
+Mlawer (see http://www.rtweb.aer.com). The longwave CKD program is from
+the original RRTM version, not the new version first released in 2002.
+The longwave RRTM reference is:
+   Mlawer, E.J., S.J. Taubman, P.D. Brown,  M.J. Iacono and S.A. Clough:
+   RRTM, a validated correlated-k model for the longwave. 
+   J. Geophys. Res., 102, 16,663-16,682, 1997 
+Both the longwave and shortwave CKD programs do not exactly  match the
+original RRTM algorithms because the SHDOM k-distribution model is
+different.  The SHDOM model is that the temperature profile and
+scattering properties are independent of the "k" within each spectral
+band.  The radiative transfer results based on ckdlwrrtm and ckdswrrtm
+do agree closely with the RRTM programs (fluxes within 1 - 2 W/m^2).   
+
+The third program, ckdfu, makes an SHDOM CKD file for both the shortwave
+and longwave, and is derived from Fu and Liou's original correlated
+k-distribution described in the article:
+   Fu, Qiang and K. N. Liou, 1992: On the Correlated k-Distribution 
+   Method for Radiative Transfer in Nonhomogeneous Atmospheres. 
+   J. Atmos. Sci., 49, 2139-2156.
+This version is not the much upgraded "Fu and Liou" k-distribution used
+by the CERES program at NASA Langley.  This older k-distribution
+parameterization has a number of deficiencies, including using one band
+for the ultraviolet and the visible, using the outdated Roberts et al.
+(1976) water vapor continuum, and missing trace absorbing species.  Thus
+it is considerably less accurate than the RRTM based programs, however,
+it is substantially cheaper to run because it has fewer k's, and is
+appropriate for some theoretical experiments (e.g. where differences
+between SHDOM runs are being investigated).  The size of the
+k-distributions in the three programs is summarized below.
+
+   Program       Shortwave          Longwave
+                Nbands  k's        Nbands  k's
+   ckdlwrrtm                         16    256
+   ckdswrrtm      14    224
+   ckdfu           6     54          12     67
+
+The number of k's is the total number of monochromatic radiative
+transfer calculations that SHDOM must perform across the longwave or
+shortwave.
+
+
+
+                Input Parameters
+
+The inputs are the same for all three CKD programs.
+
+Parameter   Description
+ATMFILE     Atmospheric profile file name
+OUTFILE     CKD file for SHDOM
+UMCO2       Concentration of CO2 in ppmv
+UMCH4       Concentration of CH4 in ppmv
+UMN2O       Concentration of N2O in ppmv
+
+
+                  Atmospheric File Format
+
+The atmospheric file specifies the profile of temperature, pressure,
+water vapor and ozone.  Each row of the file contains an atmospheric
+level, starting at the top of the atmosphere and ending at the surface.
+As an example, the US standard atmosphere is included in the SHDOM
+distribution (usatm.dat).  The format is ascii text with six columns:
+  Height  Pressure  Temperature  Air_density  Vapor_density  Ozone_density
+   (km)     (mb)       (K)        (g/m^3)        (g/m^3)        (g/m^3)      
+
+
+                        CKD Output File
+
+There are three sections of the output file.
+1. The band information: number of bands and for each band
+   the wavenumber range (cm^-1), solar flux (W/m^2), 
+   number of g's (or k's), and delta g values (weights).
+2. The atmosphere information: the concentration of CO2, CH4, N2O,
+   and for each level (from the top down) the height (km), 
+   pressure (mb), temperature (K), mixing ratio of water vapor and ozone.
+3. The absorption coefficients: each line contains the
+   band number, level number (from top down), and k's for the g's.
+
