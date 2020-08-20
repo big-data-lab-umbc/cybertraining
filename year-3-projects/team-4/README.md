@@ -3,15 +3,18 @@ Team 4 Project of the CyberTraining program at UMBC in 2020 (http://cybertrainin
 # Use of Deep Learning to Classify Compton Camera BasedPrompt Gamma Imaging for Proton Radiotherapy
 
 # Team Members
-Jonathan N. Basalyga
+Jonathan N. Basalyga 
+
 Gerson C. Kroiz
 
 # Mentors
 Carlos A. Barajas
+
 Matthias Gobbert
 
 # Clients
 Paul Maggi
+
 Jerimy Polf
 
 # Abstract
@@ -29,7 +32,7 @@ misorderings of interactions, thereby improving reconstruction quality.
 
 # Instructions on how to run the code
 For instructions on how to use the code from start to finish please see
-[the python notebook](./howToPGML.ipyb)
+[the python notebook](./howToPGML.ipynb)
 
 Note that there is no guidance on how to train the network.
 All hyperparameters for training are in [params.json](./params.json).
